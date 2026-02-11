@@ -1,0 +1,66 @@
+{
+  "name": "AI Intake Agent – Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-intake",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ai-intake-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "leadId", "value": "={{ $json.body.leadId }}" },
+            { "name": "name", "value": "={{ $json.body.name }}" },
+            { "name": "email", "value": "={{ $json.body.email }}" },
+            { "name": "company", "value": "={{ $json.body.company }}" },
+            { "name": "category", "value": "={{ $json.body.category }}" }
+          ],
+          "number": [
+            { "name": "urgency", "value": "={{ $json.body.urgency }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-vars",
+      "name": "Extract lead data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Lead received' }) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Extract lead data", "type": "main", "index": 0 }]]
+    },
+    "Extract lead data": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": false },
+  "pinData": {},
+  "tags": []
+}

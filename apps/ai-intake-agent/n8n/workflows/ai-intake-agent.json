@@ -39,15 +39,45 @@
     },
     {
       "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "eigenaar@example.com",
+        "subject": "={{ 'Nieuwe lead: ' + $json.name }}",
+        "emailType": "text",
+        "message": "={{ 'Er is een nieuwe intake binnengekomen.\\n\\nNaam: ' + $json.name + '\\nCategorie: ' + $json.category + '\\nUrgentie: ' + $json.urgency + '\\n\\nReageer via het admin dashboard.' }}"
+      },
+      "id": "gmail-notify",
+      "name": "Gmail – notificatie eigenaar",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": { "__rl": true, "value": "", "mode": "list" },
+        "title": "={{ $json.name }}",
+        "propertiesUi": {},
+        "simple": true
+      },
+      "id": "notion-lead",
+      "name": "Notion – lead in database",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ success: true, message: 'Lead received' }) }}",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Lead received', notion: true }) }}",
         "options": {}
       },
       "id": "respond",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [900, 300]
+      "position": [1120, 300]
     }
   ],
   "connections": {
@@ -55,6 +85,16 @@
       "main": [[{ "node": "Extract lead data", "type": "main", "index": 0 }]]
     },
     "Extract lead data": {
+      "main": [
+        [{ "node": "Gmail – notificatie eigenaar", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gmail – notificatie eigenaar": {
+      "main": [
+        [{ "node": "Notion – lead in database", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notion – lead in database": {
       "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
     }
   },

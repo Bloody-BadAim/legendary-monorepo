@@ -72,7 +72,7 @@ App: **http://localhost:3002**
 - Webhook path: `POST /webhook/intake`
 - Payload: `{ leadId, name, email, company, category, urgency }`
 
-A minimal workflow JSON is in `n8n/workflows/ai-intake-agent.json`. Import it in n8n and add your Gmail/Notion nodes after “Extract lead data”.
+Workflow: `n8n/workflows/ai-intake-agent.json`. Bevat: Webhook → Extract lead data → Gmail (notificatie) → **Notion (lead in database)** → Respond. Na import: Gmail- en Notion-credentials koppelen; bij Notion je Leads-database kiezen en eventueel properties (Email, Bedrijf, Categorie, Urgentie) koppelen. Workflow in n8n vervangen kan via de n8n API (PUT + X-N8N-API-KEY); de MCP kan geen workflows aanmaken of overschrijven.
 
 ## Scripts
 

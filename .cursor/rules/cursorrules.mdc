@@ -1,0 +1,156 @@
+---
+description: 
+alwaysApply: true
+---
+
+# .cursorrules
+
+## Project Identity
+- Owner: Matin - HBO-ICT student & AI Automation Freelancer
+- Stack: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
+- Monorepo: Turbo + pnpm (~/projects/templates/legendary-monorepo)
+- This app: apps/command-center
+
+## Code Standards
+
+### Language & Types
+- ALWAYS TypeScript, never plain JS
+- Strict mode enabled, no `any` types
+- Use interfaces for object shapes, types for unions/primitives
+- Export types from dedicated `types/` files
+
+### Naming Conventions
+```
+Files & folders:    kebab-case       → user-profile.tsx, api-client.ts
+Components:         PascalCase       → UserProfile.tsx exports UserProfile
+Hooks:              camelCase        → use-notion-tasks.ts exports useNotionTasks
+Utils/helpers:      camelCase        → format-date.ts exports formatDate
+Constants:          UPPER_SNAKE      → MAX_RETRY_COUNT
+Types/Interfaces:   PascalCase       → interface TaskItem { }
+API routes:         kebab-case       → app/api/notion-tasks/route.ts
+```
+
+### File Structure (Next.js App Router + Feature-based)
+```
+apps/command-center/
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Homepage (Command Center)
+│   ├── infrastructure/page.tsx   # Infrastructure tab as route
+│   ├── tools/page.tsx            # Tools arsenal
+│   ├── projects/page.tsx         # Projects overview
+│   ├── roadmap/page.tsx          # Roadmap timeline
+│   └── api/                      # API routes
+│       ├── notion/
+│       │   ├── tasks/route.ts
+│       │   └── projects/route.ts
+│       └── health/route.ts
+├── components/                   # Shared components
+│   ├── ui/                       # Base UI (shadcn/ui)
+│   ├── layout/                   # Layout components
+│   │   ├── sidebar.tsx
+│   │   ├── header.tsx
+│   │   └── tab-navigation.tsx
+│   ├── dashboard/                # Dashboard-specific
+│   │   ├── stat-card.tsx
+│   │   ├── project-card.tsx
+│   │   ├── task-list.tsx
+│   │   └── progress-bar.tsx
+│   ├── infrastructure/           # Infra diagram components
+│   │   ├── node-card.tsx
+│   │   └── connection-line.tsx
+│   └── tools/                    # Tools arsenal components
+│       ├── tool-card.tsx
+│       └── category-filter.tsx
+├── hooks/                        # Custom hooks
+│   ├── use-notion-tasks.ts
+│   ├── use-notion-projects.ts
+│   └── use-local-storage.ts
+├── lib/                          # Utilities & configs
+│   ├── notion.ts                 # Notion client setup
+│   ├── utils.ts                  # General helpers
+│   └── constants.ts              # App constants & data
+├── types/                        # TypeScript types
+│   ├── notion.ts
+│   ├── project.ts
+│   ├── tool.ts
+│   └── infrastructure.ts
+├── data/                         # Static data (tools, infra nodes)
+│   ├── tools.ts
+│   ├── infrastructure.ts
+│   └── roadmap.ts
+└── styles/
+    └── globals.css
+```
+
+### Component Pattern
+Every component follows this structure:
+```tsx
+// components/dashboard/stat-card.tsx
+"use client";
+
+import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  color: string;
+  subtitle?: string;
+}
+
+export function StatCard({ label, value, color, subtitle }: StatCardProps) {
+  return (
+    // JSX here
+  );
+}
+```
+
+Rules:
+- One component per file
+- Named exports only (no default exports except pages)
+- Props interface defined in same file, above component
+- Use `cn()` helper for conditional classnames
+- "use client" only when needed (hooks, interactivity)
+
+### Data Fetching Pattern
+- Server Components by default
+- API routes in app/api/ for external service calls (Notion)
+- Custom hooks for client-side data (use SWR or React Query)
+- Never call Notion API directly from client components
+
+### Styling Rules
+- Tailwind CSS only, no inline styles, no CSS modules
+- Use shadcn/ui for base components (Button, Card, Badge, etc.)
+- Dark theme by default (slate-900 backgrounds)
+- Color palette via CSS variables in globals.css
+- Consistent spacing: use Tailwind's spacing scale
+
+### Code Quality
+- Max 80 lines per component (split if larger)
+- Max 3 levels of nesting in JSX
+- Extract repeated JSX into sub-components
+- No magic numbers, use constants
+- Comments only for "why", not "what"
+- Dutch comments are OK for business logic
+
+### Git Conventions
+- Commits: `type(scope): description`
+- Types: feat, fix, refactor, style, docs, chore
+- Example: `feat(dashboard): add notion task sync`
+
+### API & Environment
+- Notion API key in .env.local as NOTION_API_KEY
+- Notion database IDs in .env.local as NOTION_TASKS_DB, NOTION_PROJECTS_DB
+- Never hardcode secrets
+- Use Next.js server-only for sensitive operations
+
+## What NOT to do
+- No `console.log` in production code (use proper error handling)
+- No `any` types
+- No inline styles (convert to Tailwind)
+- No default exports except page.tsx and layout.tsx
+- No giant files (split at 80 lines)
+- No business logic in components (extract to hooks/lib)
+- No direct DOM manipulation
+- No unnecessary dependencies (check if Tailwind/shadcn can do it first)

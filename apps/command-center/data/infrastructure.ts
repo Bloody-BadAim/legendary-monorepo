@@ -1,0 +1,90 @@
+import type { InfraNode, InfraConnection } from '@/types/infrastructure';
+
+export const INFRA_NODES: InfraNode[] = [
+  {
+    id: 'cloud',
+    label: 'INTERNET',
+    sub: 'Cloudflare DNS + Proxy',
+    domains: ['matmat.me', 'n8n.matmat.me', 'ai.matmat.me', 'api.matmat.me'],
+    color: '#f97316',
+    icon: '🌐',
+    x: 50,
+    y: 2,
+    xPx: 554,
+    yPx: -24,
+  },
+  {
+    id: 'proxy',
+    label: 'MATMAT SERVER',
+    sub: 'DigitalOcean Droplet',
+    specs: '1 vCPU, 960MB RAM, Ubuntu 24.04',
+    services: [
+      'Caddy Reverse Proxy',
+      'Static Sites',
+      'SSL Termination',
+      'Monitoring',
+    ],
+    color: '#06b6d4',
+    icon: '🌍',
+    x: 50,
+    y: 28,
+  },
+  {
+    id: 'power',
+    label: 'POWERHOUSE',
+    sub: "Vriend's Server (24GB RAM)",
+    services: [
+      'n8n (main)',
+      'PostgreSQL 16',
+      'Redis',
+      'Heavy AI Jobs',
+      'Long Workflows',
+    ],
+    color: '#8b5cf6',
+    icon: '🚀',
+    status: 'pending',
+    x: 15,
+    y: 58,
+  },
+  {
+    id: 'local',
+    label: 'LOCAL DEV',
+    sub: 'WSL2 (i5-10400, 32GB RAM)',
+    services: [
+      'Ollama (3 LLMs)',
+      'LiteLLM :4000',
+      'PostgreSQL :5432',
+      'n8n :5678',
+      'Cursor IDE',
+    ],
+    color: '#10b981',
+    icon: '💻',
+    x: 85,
+    y: 58,
+  },
+];
+
+export const INFRA_CONNECTIONS: InfraConnection[] = [
+  { from: 'cloud', to: 'proxy', label: 'HTTPS', color: '#f97316' },
+  {
+    from: 'proxy',
+    to: 'power',
+    label: 'Tunnel',
+    color: '#8b5cf6',
+    dashed: true,
+  },
+  {
+    from: 'proxy',
+    to: 'local',
+    label: 'Tunnel',
+    color: '#10b981',
+    dashed: true,
+  },
+  {
+    from: 'power',
+    to: 'local',
+    label: 'CF Tunnel / Tailscale',
+    color: '#64748b',
+    dashed: true,
+  },
+];

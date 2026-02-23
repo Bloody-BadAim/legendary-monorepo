@@ -1,0 +1,58 @@
+import type { ProjectItem } from '@/types/project';
+
+export const PROJECTS: ProjectItem[] = [
+  {
+    name: 'AI Intake Agent',
+    status: 'in-progress',
+    progress: 70,
+    desc: 'MKB klanten intake via AI chatbot',
+    tech: ['Next.js', 'n8n', 'LiteLLM'],
+    revenue: '€750-1500',
+    priority: 'high',
+  },
+  {
+    name: 'SaaS Template (Gumroad)',
+    status: 'in-progress',
+    progress: 30,
+    desc: 'Verkoopbaar template pakket',
+    tech: ['Next.js', 'Turbo', 'Prisma'],
+    revenue: '€49-79 per verkoop',
+    priority: 'high',
+  },
+  {
+    name: 'Vereniging Onboarding',
+    status: 'in-progress',
+    progress: 40,
+    desc: 'Pilot case study voor ICT vereniging',
+    tech: ['n8n', 'Notion API'],
+    revenue: 'Case study waarde',
+    priority: 'medium',
+  },
+  {
+    name: 'Portfolio (matmat.me)',
+    status: 'live',
+    progress: 100,
+    desc: 'Persoonlijke website + landing',
+    tech: ['HTML', 'Caddy', 'Cloudflare'],
+    revenue: 'Branding',
+    priority: 'done',
+  },
+  {
+    name: 'n8n Workflow Pack',
+    status: 'todo',
+    progress: 0,
+    desc: '10 kant-en-klare workflows verkopen',
+    tech: ['n8n'],
+    revenue: '€29 per pack',
+    priority: 'medium',
+  },
+  {
+    name: 'AI Agent Boilerplate',
+    status: 'todo',
+    progress: 0,
+    desc: 'Startkit voor AI agents',
+    tech: ['Python', 'FastAPI', 'LiteLLM'],
+    revenue: '€79 per verkoop',
+    priority: 'low',
+  },
+];

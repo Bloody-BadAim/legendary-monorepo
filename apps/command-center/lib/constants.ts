@@ -33,7 +33,10 @@ export function getPriorityColor(p: string): string {
 export const NAV_TABS = [
   { label: 'Command Center', href: '/' },
   { label: 'Infrastructure', href: '/infrastructure' },
-  { label: 'Tools Arsenal', href: '/tools' },
+  { label: 'Tools', href: '/tools' },
   { label: 'Projects', href: '/projects' },
   { label: 'Roadmap', href: '/roadmap' },
+  { label: 'Pomodoro', href: '/pomodoro' },
+  { label: 'MCPs', href: '/mcps' },
+  { label: 'Prompts', href: '/prompts' },
 ] as const;

@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { TabNavigation } from '@/components/layout/tab-navigation';
+import { ThemeProvider } from '@/components/layout/theme-provider';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { ThemeScript } from '@/components/layout/theme-script';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,30 +27,38 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className="dark">
+    <html lang="nl" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
-        <div className="mx-auto min-h-screen max-w-7xl px-6 py-6">
-          <header className="mb-6">
-            <h1 className="font-mono text-xl font-bold tracking-tight bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent">
-              MATIN COMMAND CENTER
-            </h1>
-            <p className="mt-1 font-mono text-xs text-muted">
-              AI Automation Freelancer | HBO-ICT | matmat.me
-            </p>
-          </header>
+        <ThemeProvider>
+          <div className="mx-auto min-h-screen max-w-7xl px-6 py-6">
+            <header className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h1 className="font-mono text-xl font-bold tracking-tight bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent">
+                  MATIN COMMAND CENTER
+                </h1>
+                <p className="mt-1 font-mono text-xs text-muted">
+                  AI Automation Freelancer | HBO-ICT | matmat.me
+                </p>
+              </div>
+              <ThemeToggle />
+            </header>
 
-          <TabNavigation />
+            <TabNavigation />
 
-          <main className="mt-6 transition-all duration-300">{children}</main>
+            <main className="mt-6 transition-all duration-300">{children}</main>
 
-          <footer className="mt-8 border-t border-border pt-4 text-center">
-            <span className="font-mono text-[11px] text-slate-500">
-              Built with focus, not chaos 🧠 | Last updated: Feb 2026
-            </span>
-          </footer>
-        </div>
+            <footer className="mt-8 border-t border-border pt-4 text-center">
+              <span className="font-mono text-[11px] text-slate-500">
+                Built with focus, not chaos 🧠 | Last updated: Feb 2026
+              </span>
+            </footer>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

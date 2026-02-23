@@ -57,21 +57,19 @@ export function PomodoroTimer() {
 
       {phase === 'idle' ? (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted">
-            25 min focus, 5 min pauze. Kies een sessie om te starten.
-          </p>
+          <p className="text-sm text-muted">25 min focus, 5 min pauze.</p>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => start('focus')}
-              className="rounded-lg bg-accent-blue px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="rounded-lg bg-accent-blue px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
             >
               Start focus (25 min)
             </button>
             <button
               type="button"
               onClick={() => start('break')}
-              className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-white/5"
+              className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:opacity-80"
             >
               Start pauze (5 min)
             </button>
@@ -81,7 +79,7 @@ export function PomodoroTimer() {
         <div className="space-y-4">
           <div
             className={cn(
-              'font-mono text-4xl font-bold transition-opacity',
+              'font-mono text-4xl font-bold',
               phase === 'focus' ? 'text-accent-blue' : 'text-accent-emerald'
             )}
           >
@@ -89,7 +87,7 @@ export function PomodoroTimer() {
           </div>
           <p className="text-sm text-muted">
             {phase === 'focus' ? 'Focus' : 'Pauze'}
-            {!isRunning && secondsLeft === 0 && ' – klaar'}
+            {!isRunning && secondsLeft === 0 && ' – klaar!'}
           </p>
           <div className="h-2 overflow-hidden rounded-full bg-slate-800">
             <div
@@ -105,11 +103,11 @@ export function PomodoroTimer() {
               <button
                 type="button"
                 onClick={() => setIsRunning(false)}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-white/5"
+                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:opacity-80"
               >
                 Pauzeren
               </button>
-            ) : (
+            ) : secondsLeft > 0 ? (
               <button
                 type="button"
                 onClick={() => setIsRunning(true)}
@@ -117,11 +115,11 @@ export function PomodoroTimer() {
               >
                 Hervatten
               </button>
-            )}
+            ) : null}
             <button
               type="button"
               onClick={reset}
-              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-white/5 hover:text-foreground"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted hover:text-foreground"
             >
               Reset
             </button>

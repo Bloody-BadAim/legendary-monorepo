@@ -10,7 +10,7 @@ export function TabNavigation() {
 
   return (
     <nav
-      className="flex gap-1 rounded-lg bg-white/5 p-1"
+      className="flex flex-wrap gap-1 rounded-lg bg-white/5 p-1"
       aria-label="Command Center sections"
     >
       {NAV_TABS.map(({ label, href }) => {
@@ -21,7 +21,7 @@ export function TabNavigation() {
             key={href}
             href={href}
             className={cn(
-              'flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-colors',
+              'min-w-0 flex-1 rounded-lg px-3 py-2 text-center text-xs font-semibold transition-colors sm:text-sm',
               isActive
                 ? 'bg-accent-blue text-white'
                 : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'

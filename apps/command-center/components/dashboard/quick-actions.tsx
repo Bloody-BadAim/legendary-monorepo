@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   Workflow,
   Zap,
@@ -69,6 +70,19 @@ const QUICK_ACTIONS = [
 }>;
 
 export function QuickActions() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <div className="flex gap-2 pb-2">
+        <div className="h-[4.5rem] min-w-[4.5rem] rounded-xl bg-slate-800/50 animate-pulse" />
+        <div className="h-[4.5rem] min-w-[4.5rem] rounded-xl bg-slate-800/50 animate-pulse" />
+        <div className="h-[4.5rem] min-w-[4.5rem] rounded-xl bg-slate-800/50 animate-pulse" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 scroll-smooth scrollbar-thin md:flex-wrap md:snap-none md:overflow-visible">
       {QUICK_ACTIONS.map(({ label, href, icon: Icon, color }) => (

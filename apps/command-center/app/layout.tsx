@@ -2,9 +2,6 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { TabNavigation } from '@/components/layout/tab-navigation';
-import { ThemeProvider } from '@/components/layout/theme-provider';
-import { ThemeToggle } from '@/components/layout/theme-toggle';
-import { ThemeScript } from '@/components/layout/theme-script';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -27,40 +24,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" suppressHydrationWarning>
-      <head>
-        <ThemeScript />
-      </head>
+    <html lang="nl" className="dark">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
-        <ThemeProvider>
-          <div className="mx-auto min-h-screen max-w-7xl px-3 py-3 sm:px-6 sm:py-6">
-            <header className="mb-4 flex items-start justify-between gap-3 sm:mb-6 sm:gap-4">
-              <div className="min-w-0">
-                <h1 className="font-mono text-base font-bold tracking-tight bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent sm:text-xl">
-                  MATIN COMMAND CENTER
-                </h1>
-                <p className="mt-1 font-mono text-xs text-muted">
-                  AI Automation Freelancer | HBO-ICT | matmat.me
-                </p>
-              </div>
-              <ThemeToggle />
-            </header>
+        <div className="mx-auto min-h-screen max-w-7xl px-3 py-3 sm:px-6 sm:py-6">
+          <header className="mb-4 flex items-start justify-between gap-3 sm:mb-6 sm:gap-4">
+            <div className="min-w-0">
+              <h1 className="font-mono text-base font-bold tracking-tight bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent sm:text-xl">
+                MATIN COMMAND CENTER
+              </h1>
+              <p className="mt-1 font-mono text-xs text-muted">
+                AI Automation Freelancer | HBO-ICT | matmat.me
+              </p>
+            </div>
+          </header>
 
-            <TabNavigation />
+          <TabNavigation />
 
-            <main className="mt-4 transition-all duration-300 sm:mt-6">
-              {children}
-            </main>
+          <main className="mt-4 transition-all duration-300 sm:mt-6">
+            {children}
+          </main>
 
-            <footer className="mt-6 border-t border-border pt-4 text-center sm:mt-8">
-              <span className="font-mono text-[11px] text-slate-500">
-                Built with focus, not chaos 🧠 | Last updated: Feb 2026
-              </span>
-            </footer>
-          </div>
-        </ThemeProvider>
+          <footer className="mt-6 border-t border-border pt-4 text-center sm:mt-8">
+            <span className="font-mono text-[11px] text-slate-500">
+              Built with focus, not chaos 🧠 | Last updated: Feb 2026
+            </span>
+          </footer>
+        </div>
       </body>
     </html>
   );

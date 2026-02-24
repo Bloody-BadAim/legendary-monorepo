@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { InfraConnection } from '@/types/infrastructure';
 
 /** Logical positions (0–100) for connection SVG, matching grid layout. */
@@ -26,6 +27,11 @@ export function InfrastructureConnections({
   connections,
   hoveredNode,
 }: InfrastructureConnectionsProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
   return (
     <svg
       className="pointer-events-none absolute inset-0 h-full w-full"

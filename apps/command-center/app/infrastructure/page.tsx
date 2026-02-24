@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { NodeCard } from '@/components/infrastructure/node-card';
 import { InfrastructureConnections } from '@/components/infrastructure/infra-connections';
 import { INFRA_NODES, INFRA_CONNECTIONS } from '@/data/infrastructure';
@@ -44,7 +44,10 @@ function getConnectedNodeIds(nodeId: string): Set<string> {
 export default function InfrastructurePage() {
   const [expandedNode, setExpandedNode] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const healthMap = useHealthCheck();
+
+  useEffect(() => setMounted(true), []);
 
   const highlightNode = hoveredNode ?? expandedNode;
   const connectedIds = useMemo(
@@ -71,13 +74,15 @@ export default function InfrastructurePage() {
         </p>
 
         <div className="relative min-h-[360px] md:min-h-[440px]">
-          {/* SVG connection lines (desktop only; on mobile cards are stacked) */}
-          <div className="absolute inset-0 hidden md:block">
-            <InfrastructureConnections
-              connections={INFRA_CONNECTIONS}
-              hoveredNode={highlightNode}
-            />
-          </div>
+          {/* SVG only after mount to avoid hydration mismatch (defs/marker/path) */}
+          {mounted && (
+            <div className="absolute inset-0 hidden md:block">
+              <InfrastructureConnections
+                connections={INFRA_CONNECTIONS}
+                hoveredNode={highlightNode}
+              />
+            </div>
+          )}
 
           {/* Grid of node cards */}
           <div className="infra-grid relative grid w-full gap-4 px-2 md:gap-6 md:px-4">

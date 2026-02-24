@@ -2,11 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import useSWR from 'swr';
-import { TaskStats } from '@/components/todo/task-stats';
-import { TaskFilters } from '@/components/todo/task-filters';
-import { TaskList } from '@/components/todo/task-list';
-import { TaskQuickAdd } from '@/components/todo/task-quick-add';
-import { Goals2026 } from '@/components/todo/goals-2026';
+import { TodoIslandPage } from '@/components/todo-3d/TodoIslandPage';
 import type { NotionTaskItem } from '@/types/notion';
 import type { NotionProjectItem } from '@/types/notion';
 import type { NotionAreaItem } from '@/types/notion';
@@ -106,6 +102,9 @@ export default function TodoPage() {
   const stats = useMemo(() => {
     const total = filteredTasks.length;
     const done = filteredTasks.filter((t) => t.status === 'Done').length;
+    const inProgress = filteredTasks.filter(
+      (t) => t.status === 'In progress'
+    ).length;
     const overdue = filteredTasks.filter((t) => {
       if (!t.dueDate) return false;
       try {
@@ -118,7 +117,7 @@ export default function TodoPage() {
         return false;
       }
     }).length;
-    return { total, done, overdue };
+    return { total, done, inProgress, overdue };
   }, [filteredTasks]);
 
   const handleStatusChange = useCallback(
@@ -138,73 +137,35 @@ export default function TodoPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="mb-1 text-lg font-semibold text-slate-200">
-          Todo – Notion Tasks
-        </h2>
-        <p className="text-sm text-muted">
-          Taken uit Notion Tasks-database. Wijzigingen worden direct
-          gesynchroniseerd.
-        </p>
-      </div>
-
+    <div className="relative">
       {tasksError && (
         <div
-          className="rounded-lg border border-accent-red/50 bg-accent-red/10 px-4 py-3 text-sm text-accent-red"
+          className="relative z-30 mx-4 mt-4 rounded-lg border border-accent-red/50 bg-accent-red/10 px-4 py-3 text-sm text-accent-red"
           role="alert"
         >
           {tasksError}
         </div>
       )}
-
-      {isLoading && (
-        <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted">
-          Taken laden…
-        </div>
-      )}
-
-      {!isLoading && !tasksError && (
-        <>
-          <TaskStats
-            total={stats.total}
-            done={stats.done}
-            overdue={stats.overdue}
-          />
-          <TaskFilters
-            areas={areas}
-            projects={projects}
-            selectedAreaId={selectedAreaId}
-            selectedProjectId={selectedProjectId}
-            selectedPriority={selectedPriority}
-            selectedStatus={selectedStatus}
-            onAreaChange={setSelectedAreaId}
-            onProjectChange={setSelectedProjectId}
-            onPriorityChange={setSelectedPriority}
-            onStatusChange={setSelectedStatus}
-          />
-          <TaskQuickAdd projects={projects} onAdded={() => mutateTasks()} />
-          <div className="rounded-xl border border-border bg-card p-5">
-            <h3 className="mb-4 text-sm font-semibold text-slate-200">
-              Taken per project
-            </h3>
-            {filteredTasks.length === 0 ? (
-              <p className="text-sm text-muted">
-                Geen taken (of geen resultaten voor gekozen filters).
-              </p>
-            ) : (
-              <TaskList
-                tasks={filteredTasks}
-                projects={projects}
-                groupByProject
-                onStatusChange={handleStatusChange}
-              />
-            )}
-          </div>
-        </>
-      )}
-
-      <Goals2026 />
+      <TodoIslandPage
+        areas={areas}
+        tasks={filteredTasks}
+        projects={projects}
+        isLoading={isLoading}
+        totalTasks={stats.total}
+        doneTasks={stats.done}
+        inProgressTasks={stats.inProgress}
+        overdueCount={stats.overdue}
+        selectedAreaId={selectedAreaId}
+        setSelectedAreaId={setSelectedAreaId}
+        selectedProjectId={selectedProjectId}
+        setSelectedProjectId={setSelectedProjectId}
+        selectedPriority={selectedPriority}
+        setSelectedPriority={setSelectedPriority}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+        onStatusChange={handleStatusChange}
+        onTaskAdded={() => mutateTasks()}
+      />
     </div>
   );
 }

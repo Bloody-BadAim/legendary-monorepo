@@ -33,13 +33,12 @@ async function fetchGitHubCommits(): Promise<ActivityItem[]> {
     });
     if (!res.ok) return [];
     const data = (await res.json()) as Array<{
-      commit?: { message?: string };
+      commit?: { message?: string; author?: { date?: string } };
       sha?: string;
-      commit?: { author?: { date?: string } };
     }>;
     return (data ?? []).map((c) => ({
       type: 'commit' as const,
-      message: (c.commit?.message ?? '').replace(/\n.*/s, '').trim(),
+      message: (c.commit?.message ?? '').replace(/\n[\s\S]*/, '').trim(),
       date: c.commit?.author?.date ?? new Date().toISOString(),
       sha: (c.sha ?? '').slice(0, 7),
     }));

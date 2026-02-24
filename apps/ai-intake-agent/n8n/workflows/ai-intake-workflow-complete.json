@@ -1,0 +1,199 @@
+{
+  "name": "AI Intake Agent - Complete",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-intake",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ai-intake-webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "leadId",
+              "value": "={{ $json.body.leadId }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "company",
+              "value": "={{ $json.body.company }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "category",
+              "value": "={{ $json.body.category }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "urgency",
+              "value": "={{ $json.body.urgency }}",
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "summary",
+              "value": "={{ $json.body.summary || 'Geen samenvatting' }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "questionType",
+              "value": "={{ $json.body.questionType || 'anders' }}",
+              "type": "string"
+            },
+            {
+              "id": "9",
+              "name": "description",
+              "value": "={{ $json.body.description || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-vars",
+      "name": "Extract Lead Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "matin@matin.email",
+        "subject": "=`🔔 Nieuwe lead: ${$json.company} (urgentie: ${$json.urgency}/10)`",
+        "emailType": "html",
+        "message": "=`<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n<div style=\"background:linear-gradient(135deg,#7c3aed,#ec4899);padding:20px;border-radius:12px 12px 0 0\">\n<h1 style=\"color:white;margin:0;font-size:24px\">🔔 Nieuwe Lead</h1>\n</div>\n<div style=\"background:#1e1b4b;padding:24px;color:#e2e8f0\">\n<table style=\"width:100%;border-collapse:collapse\">\n<tr><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold;width:120px\">Naam</td><td style=\"padding:12px 8px\">${$json.name}</td></tr>\n<tr style=\"background:#2e1065\"><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Email</td><td style=\"padding:12px 8px\"><a href=\"mailto:${$json.email}\" style=\"color:#818cf8\">${$json.email}</a></td></tr>\n<tr><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Bedrijf</td><td style=\"padding:12px 8px\">${$json.company}</td></tr>\n<tr style=\"background:#2e1065\"><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Categorie</td><td style=\"padding:12px 8px\"><span style=\"background:#7c3aed;color:white;padding:4px 12px;border-radius:20px;font-size:13px\">${$json.category}</span></td></tr>\n<tr><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Urgentie</td><td style=\"padding:12px 8px;font-size:20px;font-weight:bold\">${$json.urgency}/10</td></tr>\n<tr style=\"background:#2e1065\"><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Samenvatting</td><td style=\"padding:12px 8px\">${$json.summary}</td></tr>\n<tr><td style=\"padding:12px 8px;color:#a78bfa;font-weight:bold\">Beschrijving</td><td style=\"padding:12px 8px\">${$json.description}</td></tr>\n</table>\n</div>\n<div style=\"background:#1e1b4b;padding:16px;text-align:center;border-radius:0 0 12px 12px;border-top:1px solid #3730a3\">\n<p style=\"color:#64748b;font-size:12px;margin:0\">Lead ID: ${$json.leadId} | Via AI Intake Agent</p>\n</div>\n</div>`",
+        "options": {}
+      },
+      "id": "gmail-notify",
+      "name": "Email Notificatie",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [700, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SELECTEER_JE_GMAIL_CREDENTIAL",
+          "name": "Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "310be6edc1a9813e8a15e7ab3450011e",
+          "mode": "id"
+        },
+        "title": "={{ $json.name }} - {{ $json.company }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Email|email",
+              "emailValue": "={{ $json.email }}"
+            },
+            {
+              "key": "Bedrijf|rich_text",
+              "textContent": "={{ $json.company }}"
+            },
+            {
+              "key": "Categorie|select",
+              "selectValue": "={{ $json.category }}"
+            },
+            {
+              "key": "Urgentie|number",
+              "numberValue": "={{ typeof $json.urgency === 'number' ? $json.urgency : Number($json.urgency) || 0 }}"
+            },
+            {
+              "key": "Samenvatting|rich_text",
+              "textContent": "={{ $json.summary || 'Geen samenvatting' }}"
+            },
+            {
+              "key": "Lead ID|rich_text",
+              "textContent": "={{ $json.leadId }}"
+            },
+            {
+              "key": "Vraag Type|select",
+              "selectValue": "={{ $json.questionType || 'anders' }}"
+            }
+          ]
+        },
+        "bodyContent": "=`## Klant Vraag\n\n${$json.description}\n\n---\n\n**AI Analyse:** ${$json.summary}\n\n**Categorie:** ${$json.category}\n\n**Urgentie:** ${$json.urgency}/10`",
+        "options": {}
+      },
+      "id": "notion-lead",
+      "name": "Notion Lead Aanmaken",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [700, 420],
+      "credentials": {
+        "notionApi": {
+          "id": "SELECTEER_JE_NOTION_CREDENTIAL",
+          "name": "Notion"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Lead ontvangen en verwerkt' }) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Extract Lead Data", "type": "main", "index": 0 }]]
+    },
+    "Extract Lead Data": {
+      "main": [
+        [
+          { "node": "Email Notificatie", "type": "main", "index": 0 },
+          { "node": "Notion Lead Aanmaken", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Email Notificatie": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    },
+    "Notion Lead Aanmaken": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": false },
+  "pinData": {},
+  "tags": [{ "name": "ai-intake" }, { "name": "production" }]
+}

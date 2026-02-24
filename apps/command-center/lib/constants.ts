@@ -45,4 +45,5 @@ export const NAV_TABS = [
   { label: 'Pomodoro', href: '/pomodoro' },
   { label: 'MCPs', href: '/mcps' },
   { label: 'Prompts', href: '/prompts' },
+  { label: '🔍 Audit', href: '/notion-audit' },
 ] as const;

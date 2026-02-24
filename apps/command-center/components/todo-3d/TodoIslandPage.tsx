@@ -20,7 +20,10 @@ const IslandUniverse = dynamic(
 
 interface TodoIslandPageProps {
   areas: NotionAreaItem[];
+  /** Filtered tasks for 2D list and stats */
   tasks: NotionTaskItem[];
+  /** All tasks (unfiltered) for 3D islands and sidebar */
+  allTasks: NotionTaskItem[];
   projects: NotionProjectItem[];
   isLoading: boolean;
   totalTasks: number;
@@ -47,9 +50,14 @@ function getTasksForArea(
   const projectIdsInArea = new Set(
     projects.filter((p) => p.areaIds.includes(areaId)).map((p) => p.id)
   );
+
+  if (projectIdsInArea.size === 0) {
+    return [];
+  }
+
   return allTasks.filter(
     (t) =>
-      t.projectIds.length === 0 ||
+      t.projectIds.length > 0 &&
       t.projectIds.some((pid) => projectIdsInArea.has(pid))
   );
 }
@@ -57,6 +65,7 @@ function getTasksForArea(
 export function TodoIslandPage({
   areas,
   tasks,
+  allTasks,
   projects,
   isLoading,
   totalTasks,
@@ -81,8 +90,8 @@ export function TodoIslandPage({
 
   const sidebarTasks = useMemo(() => {
     if (!selectedAreaId) return [];
-    return getTasksForArea(selectedAreaId, tasks, projects);
-  }, [selectedAreaId, tasks, projects]);
+    return getTasksForArea(selectedAreaId, allTasks, projects);
+  }, [selectedAreaId, allTasks, projects]);
 
   const selectedArea = useMemo(
     () => areas.find((a) => a.id === selectedAreaId) ?? null,
@@ -95,13 +104,17 @@ export function TodoIslandPage({
     );
   }
 
+  // TIJDELIJK — delete na debug
+  console.log('🏝️ areas:', areas.length, areas);
+  console.log('📋 tasks:', tasks.length);
+
   return (
     <div className="relative min-h-screen">
       {/* 3D Canvas */}
       <div className="h-[60vh] w-full md:h-screen min-h-[600px]">
         <IslandUniverse
           areas={areas}
-          tasks={tasks}
+          tasks={allTasks}
           projects={projects.map((p) => ({ id: p.id, areaIds: p.areaIds }))}
           selectedAreaId={selectedAreaId}
           onSelectArea={setSelectedAreaId}

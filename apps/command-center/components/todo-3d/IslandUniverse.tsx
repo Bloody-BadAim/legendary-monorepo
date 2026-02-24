@@ -26,9 +26,14 @@ function getTasksForArea(
   const projectIdsInArea = new Set(
     projects.filter((p) => p.areaIds.includes(areaId)).map((p) => p.id)
   );
+
+  if (projectIdsInArea.size === 0) {
+    return [];
+  }
+
   return allTasks.filter(
     (t) =>
-      t.projectIds.length === 0 ||
+      t.projectIds.length > 0 &&
       t.projectIds.some((pid) => projectIdsInArea.has(pid))
   );
 }
@@ -57,7 +62,7 @@ function IslandUniverseScene({
             key={area.id}
             area={area}
             tasks={areaTasks}
-            position={[x, 0, z]}
+            position={[x, -1, z]}
             isSelected={selectedAreaId === area.id}
             onClick={() =>
               onSelectArea(selectedAreaId === area.id ? null : area.id)
@@ -78,6 +83,7 @@ export function IslandUniverse(props: IslandUniverseProps) {
         gl={{ antialias: true }}
       >
         <OrbitControls
+          target={[0, 0, 0]}
           enablePan={false}
           maxPolarAngle={Math.PI / 2.2}
           enableDamping
@@ -85,6 +91,12 @@ export function IslandUniverse(props: IslandUniverseProps) {
         />
         <Suspense fallback={null}>
           <IslandUniverseScene {...props} />
+          {props.areas.length === 0 && (
+            <mesh position={[0, 0, 0]}>
+              <sphereGeometry args={[2, 16, 16]} />
+              <meshStandardMaterial color="#8b5cf6" />
+            </mesh>
+          )}
         </Suspense>
       </Canvas>
     </div>

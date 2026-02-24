@@ -35,6 +35,14 @@ const areasFetcher = (url: string) =>
       }>
   );
 
+/** Areas die we niet tonen als eilanden of in filters */
+const EXCLUDED_AREA_NAMES = [
+  'Gezondheid & Welzijn',
+  'Work',
+  'Personal',
+  'Health',
+];
+
 export default function TodoPage() {
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -59,13 +67,20 @@ export default function TodoPage() {
   });
 
   const projects = projectsData?.projects ?? [];
-  const areas = areasData?.areas ?? [];
+  const areas = useMemo(
+    () =>
+      (areasData?.areas ?? []).filter(
+        (a) => !EXCLUDED_AREA_NAMES.includes(a.name)
+      ),
+    [areasData?.areas]
+  );
+  const allTasks = tasksData?.tasks ?? [];
   const tasksError =
     tasksData?.error ?? (tasksData?.source === 'error' ? 'Notion fout' : null);
   const isLoading = !tasksData && !tasksError;
 
   const filteredTasks = useMemo(() => {
-    let out = tasksData?.tasks ?? [];
+    let out = allTasks;
     const projs = projectsData?.projects ?? [];
     if (selectedAreaId) {
       const projectIdsInArea = new Set(
@@ -91,7 +106,7 @@ export default function TodoPage() {
     }
     return out;
   }, [
-    tasksData,
+    allTasks,
     projectsData,
     selectedAreaId,
     selectedProjectId,
@@ -149,6 +164,7 @@ export default function TodoPage() {
       <TodoIslandPage
         areas={areas}
         tasks={filteredTasks}
+        allTasks={allTasks}
         projects={projects}
         isLoading={isLoading}
         totalTasks={stats.total}

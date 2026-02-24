@@ -5,10 +5,15 @@ const STATUS_COLORS = {
   'in-progress': '#3b82f6',
   live: '#10b981',
   todo: '#64748b',
+  planned: '#8b5cf6',
   done: '#10b981',
   current: '#3b82f6',
   upcoming: '#64748b',
   pending: '#f97316',
+  dev: '#10b981',
+  connected: '#10b981',
+  error: '#ef4444',
+  disabled: '#64748b',
 } as const;
 
 type StatusKey = keyof typeof STATUS_COLORS;
@@ -18,10 +23,10 @@ export function getStatusColor(s: string): string {
 }
 
 const PRIORITY_COLORS = {
+  critical: '#dc2626',
   high: '#ef4444',
   medium: '#f97316',
   low: '#64748b',
-  done: '#10b981',
 } as const;
 
 type PriorityKey = keyof typeof PRIORITY_COLORS;

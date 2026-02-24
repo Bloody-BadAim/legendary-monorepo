@@ -1,24 +1,22 @@
+export type InfraStatus = 'live' | 'pending' | 'dev';
+
 export interface InfraNode {
   id: string;
   label: string;
-  sub: string;
-  color: string;
+  subtitle: string;
   icon: string;
-  x: number;
-  y: number;
-  /** Optional pixel position override (used when persisting browser-adjusted layout) */
-  xPx?: number;
-  yPx?: number;
-  domains?: string[];
+  color: string;
+  status: InfraStatus;
   specs?: string;
-  services?: string[];
-  status?: 'pending';
+  ip?: string;
+  services: string[];
+  domains?: string[];
+  ports?: string[];
 }
 
 export interface InfraConnection {
   from: string;
   to: string;
   label: string;
-  color: string;
-  dashed?: boolean;
+  type: 'https' | 'tunnel' | 'internal';
 }

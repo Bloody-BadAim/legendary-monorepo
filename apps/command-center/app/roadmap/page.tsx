@@ -32,25 +32,28 @@ export default function RoadmapPage() {
                   : 'border-border bg-white/[0.02]'
               )}
             >
-              <div className="mb-3.5 flex items-center gap-2.5">
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: getStatusColor(week.status) }}
-                >
-                  Week {week.week}
-                </span>
-                <span className="text-sm font-semibold text-slate-200">
-                  {week.title}
-                </span>
-                <span
-                  className="ml-auto rounded px-2 py-0.5 text-[10px] font-semibold uppercase"
-                  style={{
-                    background: `${getStatusColor(week.status)}22`,
-                    color: getStatusColor(week.status),
-                  }}
-                >
-                  {week.status}
-                </span>
+              <div className="mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: getStatusColor(week.status) }}
+                  >
+                    Week {week.week}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-200">
+                    {week.title}
+                  </span>
+                  <span
+                    className="ml-auto rounded px-2 py-0.5 text-[10px] font-semibold uppercase"
+                    style={{
+                      background: `${getStatusColor(week.status)}22`,
+                      color: getStatusColor(week.status),
+                    }}
+                  >
+                    {week.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">{week.focus}</p>
               </div>
 
               <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -73,6 +76,11 @@ export default function RoadmapPage() {
                       )}
                     >
                       {task.task}
+                      {task.note && (
+                        <span className="ml-1 text-[10px] text-amber-400">
+                          ({task.note})
+                        </span>
+                      )}
                     </span>
                   </div>
                 ))}

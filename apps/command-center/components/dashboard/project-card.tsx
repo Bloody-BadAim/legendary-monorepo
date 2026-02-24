@@ -14,7 +14,7 @@ const statusVariant = (
 ): 'in-progress' | 'live' | 'todo' | 'default' => {
   if (s === 'in-progress') return 'in-progress';
   if (s === 'live') return 'live';
-  if (s === 'todo') return 'todo';
+  if (s === 'todo' || s === 'planned') return 'todo';
   return 'default';
 };
 
@@ -40,7 +40,7 @@ export function ProjectCard({
           <h3 className="text-base font-semibold text-slate-200">
             {project.name}
           </h3>
-          <p className="text-xs text-slate-400">{project.desc}</p>
+          <p className="text-xs text-slate-400">{project.description}</p>
         </div>
         <div className="text-right">
           <Badge variant={statusVariant(project.status)}>

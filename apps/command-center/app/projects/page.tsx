@@ -40,12 +40,14 @@ function mergeNotionWithStatic(
   );
   const notionOnlyItems: ProjectItem[] = notionOnly.map((np) => ({
     name: np.name,
+    slug: np.name.toLowerCase().replace(/\s+/g, '-'),
     status: notionStatusToProjectStatus(np.status),
     progress: np.progress,
-    desc: '',
+    description: '',
     tech: [],
     revenue: '—',
     priority: 'medium' as const,
+    location: '',
   }));
   return [...staticWithOverlay, ...notionOnlyItems];
 }

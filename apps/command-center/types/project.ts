@@ -1,12 +1,21 @@
-export type ProjectStatus = 'in-progress' | 'live' | 'todo';
-export type ProjectPriority = 'high' | 'medium' | 'low' | 'done';
+export type ProjectStatus = 'live' | 'in-progress' | 'todo' | 'planned';
+export type ProjectPriority = 'critical' | 'high' | 'medium' | 'low';
+
+export interface ProjectLink {
+  label: string;
+  url: string;
+}
 
 export interface ProjectItem {
   name: string;
+  slug: string;
   status: ProjectStatus;
   progress: number;
-  desc: string;
+  description: string;
   tech: string[];
   revenue: string;
   priority: ProjectPriority;
+  location: string;
+  port?: number;
+  links?: ProjectLink[];
 }

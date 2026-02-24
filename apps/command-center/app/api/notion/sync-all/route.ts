@@ -13,6 +13,17 @@ function toNotionStatus(s: string): 'Not started' | 'In progress' | 'Done' {
   return 'Not started';
 }
 
+function toolStatusToNotion(s: string): 'Not started' | 'In progress' | 'Done' {
+  if (s === 'active') return 'Done';
+  if (s === 'setup') return 'In progress';
+  return 'Not started';
+}
+
+function isStatusValidationError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes('Status is expected to be status');
+}
+
 async function syncProjects(
   notion: ReturnType<typeof getNotion>,
   dbId: string
@@ -20,19 +31,28 @@ async function syncProjects(
   if (!notion) return [];
   const created: string[] = [];
   for (const proj of PROJECTS) {
-    await notion.pages.create({
-      parent: { database_id: dbId },
-      properties: {
-        Name: {
-          type: 'title' as const,
-          title: [{ type: 'text' as const, text: { content: proj.name } }],
-        },
-        Status: {
-          type: 'status' as const,
-          status: { name: toNotionStatus(proj.status) },
-        },
+    const baseProps = {
+      Name: {
+        type: 'title' as const,
+        title: [{ type: 'text' as const, text: { content: proj.name } }],
       },
-    });
+    };
+    try {
+      await notion.pages.create({
+        parent: { database_id: dbId },
+        properties: {
+          ...baseProps,
+          Status: { status: { name: toNotionStatus(proj.status) } },
+        },
+      });
+    } catch (e) {
+      if (isStatusValidationError(e)) {
+        await notion.pages.create({
+          parent: { database_id: dbId },
+          properties: baseProps,
+        });
+      } else throw e;
+    }
     created.push(proj.name);
   }
   return created;
@@ -43,19 +63,28 @@ async function syncTasks(notion: ReturnType<typeof getNotion>, dbId: string) {
   const created: string[] = [];
   for (const week of ROADMAP) {
     for (const task of week.tasks) {
-      await notion.pages.create({
-        parent: { database_id: dbId },
-        properties: {
-          Name: {
-            type: 'title' as const,
-            title: [{ type: 'text' as const, text: { content: task.task } }],
-          },
-          Status: {
-            type: 'status' as const,
-            status: { name: task.done ? 'Done' : 'Not started' },
-          },
+      const baseProps = {
+        Name: {
+          type: 'title' as const,
+          title: [{ type: 'text' as const, text: { content: task.task } }],
         },
-      });
+      };
+      try {
+        await notion.pages.create({
+          parent: { database_id: dbId },
+          properties: {
+            ...baseProps,
+            Status: { status: { name: task.done ? 'Done' : 'Not started' } },
+          },
+        });
+      } catch (e) {
+        if (isStatusValidationError(e)) {
+          await notion.pages.create({
+            parent: { database_id: dbId },
+            properties: baseProps,
+          });
+        } else throw e;
+      }
       created.push(task.task);
     }
   }
@@ -67,21 +96,35 @@ async function syncTools(notion: ReturnType<typeof getNotion>, dbId: string) {
   const created: string[] = [];
   for (const cat of TOOL_CATEGORIES) {
     for (const tool of cat.tools) {
-      await notion.pages.create({
-        parent: { database_id: dbId },
-        properties: {
-          Name: {
-            type: 'title' as const,
-            title: [{ type: 'text' as const, text: { content: tool.name } }],
-          },
-          Category: { type: 'select' as const, select: { name: cat.name } },
-          Status: { type: 'select' as const, select: { name: tool.status } },
-          Description: {
-            type: 'rich_text' as const,
-            rich_text: [{ type: 'text' as const, text: { content: tool.use } }],
-          },
+      const baseProps = {
+        Name: {
+          type: 'title' as const,
+          title: [{ type: 'text' as const, text: { content: tool.name } }],
         },
-      });
+        Category: { type: 'select' as const, select: { name: cat.name } },
+        Description: {
+          type: 'rich_text' as const,
+          rich_text: [
+            { type: 'text' as const, text: { content: tool.description } },
+          ],
+        },
+      };
+      try {
+        await notion.pages.create({
+          parent: { database_id: dbId },
+          properties: {
+            ...baseProps,
+            Status: { status: { name: toolStatusToNotion(tool.status) } },
+          },
+        });
+      } catch (e) {
+        if (isStatusValidationError(e)) {
+          await notion.pages.create({
+            parent: { database_id: dbId },
+            properties: baseProps,
+          });
+        } else throw e;
+      }
       created.push(tool.name);
     }
   }
@@ -108,10 +151,6 @@ async function syncMcps(notion: ReturnType<typeof getNotion>, dbId: string) {
         'Use Case': {
           type: 'rich_text' as const,
           rich_text: [{ type: 'text' as const, text: { content: mcp.use } }],
-        },
-        Color: {
-          type: 'rich_text' as const,
-          rich_text: [{ type: 'text' as const, text: { content: mcp.color } }],
         },
       },
     });

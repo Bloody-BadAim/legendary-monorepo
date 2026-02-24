@@ -29,13 +29,29 @@ export async function POST() {
   try {
     const created: string[] = [];
     for (const proj of PROJECTS) {
-      await notion.pages.create({
-        parent: { database_id: dbId },
-        properties: {
-          Name: { title: [{ text: { content: proj.name } }] },
-          Status: { select: { name: toNotionStatus(proj.status) } },
-        },
-      });
+      const statusName = toNotionStatus(proj.status);
+      const withStatus = {
+        Name: { title: [{ text: { content: proj.name } }] },
+        Status: { status: { name: statusName } },
+      };
+      try {
+        await notion.pages.create({
+          parent: { database_id: dbId },
+          properties: withStatus,
+        });
+      } catch (createErr) {
+        const msg = createErr instanceof Error ? createErr.message : '';
+        if (msg.includes('Status is expected to be status')) {
+          await notion.pages.create({
+            parent: { database_id: dbId },
+            properties: {
+              Name: { title: [{ text: { content: proj.name } }] },
+            },
+          });
+        } else {
+          throw createErr;
+        }
+      }
       created.push(proj.name);
     }
     return NextResponse.json({

@@ -84,7 +84,8 @@ export default function ToolsPage() {
                     key={tool.name}
                     name={tool.name}
                     status={tool.status}
-                    use={tool.use}
+                    description={tool.description}
+                    link={tool.link}
                   />
                 ))}
               </div>

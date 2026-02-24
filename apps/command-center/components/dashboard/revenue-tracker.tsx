@@ -1,14 +1,28 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { ProgressBar } from '@/components/dashboard/progress-bar';
+import { RevenueEntryForm } from '@/components/dashboard/revenue-entry-form';
 import {
   REVENUE_ENTRIES,
   REVENUE_TARGET,
   REVENUE_PERIOD,
   type RevenueEntry,
 } from '@/data/revenue';
+import { cn } from '@/lib/utils';
 
+const STORAGE_KEY = 'command-center-revenue-entries';
 const REVENUE_BAR_COLOR = '#f97316';
+
+function getLocalStorageEntries(): RevenueEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
 
 function statusColor(status: RevenueEntry['status']): string {
   switch (status) {
@@ -33,18 +47,47 @@ function statusLabel(status: RevenueEntry['status']): string {
 }
 
 export function RevenueTracker() {
-  const current = REVENUE_ENTRIES.reduce((sum, e) => sum + e.amount, 0);
+  const [entries, setEntries] = useState<RevenueEntry[]>(() => [
+    ...REVENUE_ENTRIES,
+    ...getLocalStorageEntries(),
+  ]);
+  const [showForm, setShowForm] = useState(false);
+
+  const refresh = useCallback(() => {
+    setEntries([...REVENUE_ENTRIES, ...getLocalStorageEntries()]);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const current = entries.reduce((sum, e) => sum + e.amount, 0);
   const remaining = Math.max(0, REVENUE_TARGET - current);
   const percent =
     REVENUE_TARGET > 0 ? Math.min(100, (current / REVENUE_TARGET) * 100) : 0;
   const targetReached = percent >= 100;
-  const lastEntries = REVENUE_ENTRIES.slice(-3).reverse();
+  const lastEntries = entries.slice(-3).reverse();
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 md:col-span-2">
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-200">
-        <span className="text-lg">💰</span> Revenue Tracker
-      </h2>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+          <span className="text-lg">💰</span> Revenue Tracker
+        </h2>
+        <button
+          type="button"
+          onClick={() => setShowForm((v) => !v)}
+          className={cn(
+            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-sm font-medium transition-colors',
+            showForm
+              ? 'border-slate-600 bg-slate-700 text-slate-200'
+              : 'border-border bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
+          )}
+          aria-label={showForm ? 'Formulier verbergen' : 'Entry toevoegen'}
+        >
+          +
+        </button>
+      </div>
 
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <div className="font-mono text-2xl font-bold text-slate-100">
@@ -93,6 +136,8 @@ export function RevenueTracker() {
           </ul>
         </div>
       )}
+
+      {showForm && <RevenueEntryForm onSubmitted={refresh} />}
     </div>
   );
 }

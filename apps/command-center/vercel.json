@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm --filter command-center build",
+  "outputDirectory": "apps/command-center/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs"
+}

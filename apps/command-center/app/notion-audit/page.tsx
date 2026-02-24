@@ -19,11 +19,11 @@ function notionUrl(pageId: string): string {
 function severityStyles(severity: AuditIssue['severity']) {
   switch (severity) {
     case 'error':
-      return 'border-red-500/30 bg-red-500/10 text-red-400';
+      return 'border-l-4 border-l-red-500 border-red-500/30 bg-red-500/10 text-red-400';
     case 'warning':
-      return 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+      return 'border-l-4 border-l-amber-500 border-amber-500/30 bg-amber-500/10 text-amber-400';
     case 'info':
-      return 'border-blue-500/30 bg-blue-500/10 text-blue-400';
+      return 'border-l-4 border-l-blue-500 border-blue-500/30 bg-blue-500/10 text-blue-400';
     default:
       return 'border-border bg-card text-slate-300';
   }
@@ -67,7 +67,7 @@ export default function NotionAuditPage() {
   const { data, error, isLoading, mutate } = useSWR<AuditResult>(
     '/api/notion/audit',
     fetcher,
-    { revalidateOnFocus: false, refreshInterval: 0 }
+    { revalidateOnMount: true, revalidateOnFocus: false, refreshInterval: 0 }
   );
 
   const filteredIssues = useMemo(() => {
@@ -103,13 +103,21 @@ export default function NotionAuditPage() {
           disabled={isLoading}
           className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
         >
-          {isLoading ? 'Bezig…' : 'Run'}
+          {isLoading ? 'Bezig…' : '🔄 Run Audit'}
         </button>
       </div>
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
           {error.message ?? 'Audit kon niet worden geladen'}
+        </div>
+      )}
+
+      {isLoading && !data && (
+        <div className="flex flex-wrap gap-3">
+          <div className="h-20 w-24 rounded-xl bg-slate-800/80 animate-pulse" />
+          <div className="h-20 w-24 rounded-xl bg-slate-800/80 animate-pulse" />
+          <div className="h-20 w-24 rounded-xl bg-slate-800/80 animate-pulse" />
         </div>
       )}
 
@@ -156,7 +164,7 @@ export default function NotionAuditPage() {
                     : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700'
                 )}
               >
-                {d === 'all' ? 'Alle' : d}
+                {d === 'all' ? 'Alle' : dbLabel(d)}
               </button>
             ))}
           </div>
@@ -166,13 +174,27 @@ export default function NotionAuditPage() {
               Issues ({filteredIssues.length})
             </h3>
             {filteredIssues.length === 0 ? (
-              <p className="text-sm text-muted">
-                Geen issues
-                {severityFilter !== 'all' || dbFilter !== 'all'
-                  ? ' voor dit filter'
-                  : ''}
-                .
-              </p>
+              data.totalIssues === 0 &&
+              severityFilter === 'all' &&
+              dbFilter === 'all' ? (
+                <div className="py-12 text-center">
+                  <p className="text-4xl">✅</p>
+                  <p className="mt-2 text-lg font-semibold text-emerald-400">
+                    Alles ziet er goed uit!
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    Geen issues gevonden in je Notion Second Brain.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  Geen issues
+                  {severityFilter !== 'all' || dbFilter !== 'all'
+                    ? ' voor dit filter'
+                    : ''}
+                  .
+                </p>
+              )
             ) : (
               <ul className="space-y-3">
                 {filteredIssues.map((issue, idx) => (
@@ -185,12 +207,17 @@ export default function NotionAuditPage() {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <span className="font-mono text-xs opacity-80">
-                          {dbLabel(issue.database)} › &quot;{issue.pageName}
-                          &quot;
+                        <span className="rounded bg-slate-800/80 px-1.5 py-0.5 font-mono text-[10px]">
+                          {dbLabel(issue.database)}
+                        </span>
+                        <span className="ml-1.5 font-mono text-xs opacity-80">
+                          &quot;{issue.pageName}&quot;
                         </span>
                         <p className="mt-1 text-sm font-medium">
-                          {issue.type}: {issue.message}
+                          <code className="rounded bg-black/20 px-1 text-xs">
+                            {issue.type}
+                          </code>{' '}
+                          {issue.message}
                         </p>
                         {issue.details && (
                           <p className="mt-0.5 text-xs opacity-90">

@@ -1,11 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { NodeCard } from '@/components/infrastructure/node-card';
-import { INFRA_NODES } from '@/data/infrastructure';
+import { InfrastructureConnections } from '@/components/infrastructure/infra-connections';
+import { INFRA_NODES, INFRA_CONNECTIONS } from '@/data/infrastructure';
+import { useHealthCheck } from '@/hooks/use-health-check';
+import type { HealthStatus } from '@/hooks/use-health-check';
+
+function getNodeHealthStatus(
+  nodeId: string,
+  healthMap: Map<string, { status: HealthStatus; latency: number }>
+): HealthStatus | null {
+  const idsByNode: Record<string, string[]> = {
+    cloudflare: [],
+    matmat: ['matmat-web'],
+    powerhouse: [],
+    local: ['ollama', 'litellm', 'postgres', 'n8n-local', 'command-center'],
+  };
+  const ids = idsByNode[nodeId];
+  if (!ids?.length) return null;
+  let hasOnline = false;
+  let hasChecking = false;
+  for (const id of ids) {
+    const h = healthMap.get(id);
+    if (!h) continue;
+    if (h.status === 'online') hasOnline = true;
+    if (h.status === 'checking') hasChecking = true;
+  }
+  if (hasOnline) return 'online';
+  if (hasChecking) return 'checking';
+  return 'offline';
+}
+
+function getConnectedNodeIds(nodeId: string): Set<string> {
+  const set = new Set<string>([nodeId]);
+  for (const c of INFRA_CONNECTIONS) {
+    if (c.from === nodeId) set.add(c.to);
+    if (c.to === nodeId) set.add(c.from);
+  }
+  return set;
+}
 
 export default function InfrastructurePage() {
+  const [expandedNode, setExpandedNode] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const healthMap = useHealthCheck();
+
+  const highlightNode = hoveredNode ?? expandedNode;
+  const connectedIds = useMemo(
+    () => (highlightNode ? getConnectedNodeIds(highlightNode) : null),
+    [highlightNode]
+  );
 
   return (
     <div className="relative min-h-[500px] overflow-hidden rounded-2xl border border-border bg-[#0a0f1a] p-6">
@@ -21,80 +66,46 @@ export default function InfrastructurePage() {
         <h2 className="mb-2 text-center text-base font-bold text-slate-200">
           3-Tier Hybrid Architecture
         </h2>
-        <p className="mb-8 text-center text-xs text-muted">
-          Klik op een node voor details
+        <p className="mb-6 text-center text-xs text-muted md:mb-8">
+          Klik op een node voor details · Hover voor verbindingen
         </p>
 
-        <div className="relative h-[440px]">
-          <svg
-            className="absolute inset-0 h-full w-full"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <line
-              x1="50"
-              y1="12"
-              x2="50"
-              y2="28"
-              stroke="#f97316"
-              strokeWidth="0.3"
-              strokeDasharray="1,1"
-              opacity="0.6"
+        <div className="relative min-h-[360px] md:min-h-[440px]">
+          {/* SVG connection lines (desktop only; on mobile cards are stacked) */}
+          <div className="absolute inset-0 hidden md:block">
+            <InfrastructureConnections
+              connections={INFRA_CONNECTIONS}
+              hoveredNode={highlightNode}
             />
-            <line
-              x1="42"
-              y1="42"
-              x2="22"
-              y2="58"
-              stroke="#8b5cf6"
-              strokeWidth="0.2"
-              strokeDasharray="1,1"
-              opacity="0.4"
-            />
-            <line
-              x1="58"
-              y1="42"
-              x2="78"
-              y2="58"
-              stroke="#10b981"
-              strokeWidth="0.2"
-              strokeDasharray="1,1"
-              opacity="0.4"
-            />
-            <line
-              x1="32"
-              y1="68"
-              x2="68"
-              y2="68"
-              stroke="#64748b"
-              strokeWidth="0.15"
-              strokeDasharray="1,1"
-              opacity="0.3"
-            />
-          </svg>
+          </div>
 
-          {INFRA_NODES.map((node) => (
-            <NodeCard
-              key={node.id}
-              node={node}
-              isHovered={hoveredNode === node.id}
-              onToggle={() =>
-                setHoveredNode(hoveredNode === node.id ? null : node.id)
-              }
-            />
-          ))}
-
-          <div className="absolute left-[52%] top-[19%] font-mono text-[9px] text-orange-500 opacity-60">
-            HTTPS ↓
-          </div>
-          <div className="absolute left-[26%] top-[49%] -rotate-30 font-mono text-[9px] text-purple-500 opacity-60">
-            Tunnel
-          </div>
-          <div className="absolute left-[723px] top-[227px] rotate-30 font-mono text-[9px] text-emerald-500 opacity-60">
-            Tunnel
-          </div>
-          <div className="absolute left-[46%] top-[72%] font-mono text-[9px] text-slate-500 opacity-50">
-            CF Tunnel / Tailscale
+          {/* Grid of node cards */}
+          <div className="infra-grid relative grid w-full gap-4 px-2 md:gap-6 md:px-4">
+            {INFRA_NODES.map((node) => (
+              <div
+                key={node.id}
+                className="flex items-center justify-center"
+                style={{ gridArea: node.id }}
+              >
+                <NodeCard
+                  node={node}
+                  isHovered={
+                    hoveredNode === node.id || expandedNode === node.id
+                  }
+                  isDimmed={
+                    highlightNode != null &&
+                    connectedIds !== null &&
+                    !connectedIds.has(node.id)
+                  }
+                  onToggle={() =>
+                    setExpandedNode(expandedNode === node.id ? null : node.id)
+                  }
+                  onHover={(hover) => setHoveredNode(hover ? node.id : null)}
+                  healthMap={healthMap}
+                  nodeStatus={getNodeHealthStatus(node.id, healthMap)}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>

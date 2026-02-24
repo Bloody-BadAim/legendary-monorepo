@@ -62,7 +62,6 @@ export default function TodoPage() {
     dedupingInterval: 60_000,
   });
 
-  const tasks = tasksData?.tasks ?? [];
   const projects = projectsData?.projects ?? [];
   const areas = areasData?.areas ?? [];
   const tasksError =
@@ -70,7 +69,7 @@ export default function TodoPage() {
   const isLoading = !tasksData && !tasksError;
 
   const filteredTasks = useMemo(() => {
-    let out = tasks;
+    let out = tasksData?.tasks ?? [];
     const projs = projectsData?.projects ?? [];
     if (selectedAreaId) {
       const projectIdsInArea = new Set(
@@ -96,8 +95,8 @@ export default function TodoPage() {
     }
     return out;
   }, [
-    tasksData?.tasks,
-    projectsData?.projects,
+    tasksData,
+    projectsData,
     selectedAreaId,
     selectedProjectId,
     selectedPriority,

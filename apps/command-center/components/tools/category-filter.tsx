@@ -31,7 +31,7 @@ export function CategoryFilter({
   };
 
   return (
-    <div className="mb-5 flex gap-2">
+    <div className="mb-5 flex flex-wrap gap-2">
       {FILTERS.map(({ key }) => (
         <Button
           key={key}

@@ -7,14 +7,14 @@ import { cn } from '@/lib/utils';
 export default function RoadmapPage() {
   return (
     <div className="relative">
-      <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent-blue to-slate-600" />
+      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent-blue to-slate-600 sm:left-5" />
 
       <div className="flex flex-col gap-6">
         {ROADMAP.map((week) => (
-          <div key={week.week} className="relative pl-12">
+          <div key={week.week} className="relative pl-8 sm:pl-12">
             <div
               className={cn(
-                'absolute left-3 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 text-[10px] text-white',
+                'absolute left-1 top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 text-[10px] text-white sm:left-3',
                 week.status === 'done' && 'border-emerald-500 bg-emerald-500',
                 week.status === 'current' &&
                   'border-accent-blue bg-accent-blue shadow-[0_0_12px_rgba(59,130,246,0.33)]',

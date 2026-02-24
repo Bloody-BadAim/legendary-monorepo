@@ -39,14 +39,55 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: "Inter", -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 .font-mono-nums {
   font-family: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* Horizontal scroll without visible scrollbar (e.g. tab nav on mobile) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Infrastructure diagram: data flow line animation */
+@keyframes infra-dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.infra-line {
+  stroke-dashoffset: 3.5;
+}
+
+/* Infrastructure diagram: responsive grid (mobile stack, desktop 3-tier) */
+.infra-grid {
+  grid-template-areas:
+    "cloudflare"
+    "matmat"
+    "powerhouse"
+    "local";
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(4, auto);
+}
+@media (min-width: 768px) {
+  .infra-grid {
+    grid-template-areas:
+      "cloudflare cloudflare cloudflare"
+      "matmat matmat matmat"
+      "powerhouse . local";
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto 1fr;
   }
 }

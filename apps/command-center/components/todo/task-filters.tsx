@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import type { NotionAreaItem } from '@/types/notion';
 import type { NotionProjectItem } from '@/types/notion';
 
+type Setter<T> = (value: T) => void;
+
 interface TaskFiltersProps {
   areas: NotionAreaItem[];
   projects: NotionProjectItem[];
@@ -11,10 +13,10 @@ interface TaskFiltersProps {
   selectedProjectId: string | null;
   selectedPriority: string | null;
   selectedStatus: string | null;
-  onAreaChange: (_id: string | null) => void;
-  onProjectChange: (_id: string | null) => void;
-  onPriorityChange: (_value: string | null) => void;
-  onStatusChange: (_value: string | null) => void;
+  onAreaChange: Setter<string | null>;
+  onProjectChange: Setter<string | null>;
+  onPriorityChange: Setter<string | null>;
+  onStatusChange: Setter<string | null>;
   className?: string;
 }
 

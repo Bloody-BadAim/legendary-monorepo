@@ -11,9 +11,11 @@ const PRIORITY_COLORS: Record<string, string> = {
   'Low Priority': 'bg-slate-500/20 text-slate-400 border-slate-500/40',
 };
 
+type StatusChangeHandler = (taskId: string, newStatus: string) => Promise<void>;
+
 interface TaskCardProps {
   task: NotionTaskItem;
-  onStatusChange: (_taskId: string, _newStatus: string) => Promise<void>;
+  onStatusChange: StatusChangeHandler;
 }
 
 function formatDueDate(iso: string | null): string {

@@ -4,11 +4,13 @@ import { TaskCard } from './task-card';
 import type { NotionTaskItem } from '@/types/notion';
 import type { NotionProjectItem } from '@/types/notion';
 
+type StatusChangeHandler = (taskId: string, newStatus: string) => Promise<void>;
+
 interface TaskListProps {
   tasks: NotionTaskItem[];
   projects: NotionProjectItem[];
   groupByProject: boolean;
-  onStatusChange: (_taskId: string, _newStatus: string) => Promise<void>;
+  onStatusChange: StatusChangeHandler;
 }
 
 export function TaskList({

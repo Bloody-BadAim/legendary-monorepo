@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { QuickActions } from '@/components/dashboard/quick-actions';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { RevenueTracker } from '@/components/dashboard/revenue-tracker';
 import { TaskList } from '@/components/dashboard/task-list';
 import { ProjectCardMini } from '@/components/dashboard/project-card-mini';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { useNotionTasks } from '@/hooks/use-notion-tasks';
 import { useNotionProjects } from '@/hooks/use-notion-projects';
 import { TOOL_CATEGORIES } from '@/data/tools';
@@ -115,17 +118,13 @@ export default function CommandCenterPage() {
       color: '#8b5cf6',
       sub: `${totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0}% compleet`,
     },
-    {
-      label: 'Revenue Doel',
-      value: '€1000',
-      color: '#f97316',
-      sub: 'in 30 dagen',
-    },
   ];
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      <div className="grid grid-cols-2 gap-3 md:col-span-2 md:grid-cols-4">
+      <QuickActions />
+
+      <div className="grid grid-cols-2 gap-3 md:col-span-2 md:grid-cols-3">
         {stats.map((stat, i) => (
           <StatCard
             key={stat.label}
@@ -138,6 +137,8 @@ export default function CommandCenterPage() {
           />
         ))}
       </div>
+
+      <RevenueTracker />
 
       <div className="rounded-xl border border-border bg-card p-5">
         <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-200">
@@ -166,6 +167,8 @@ export default function CommandCenterPage() {
           ))}
         </div>
       </div>
+
+      <ActivityFeed />
 
       <div className="rounded-xl border border-border bg-card p-5 md:col-span-2">
         <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-200">

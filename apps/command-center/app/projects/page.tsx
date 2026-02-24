@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ProjectCard } from '@/components/dashboard/project-card';
 import { useNotionProjects } from '@/hooks/use-notion-projects';
 import { PROJECTS } from '@/data/projects';
-import { Button } from '@/components/ui/button';
 import type { ProjectItem } from '@/types/project';
 
 function notionStatusToProjectStatus(s: string): ProjectItem['status'] {
@@ -52,38 +51,14 @@ function mergeNotionWithStatic(
   return [...staticWithOverlay, ...notionOnlyItems];
 }
 
-type SyncStatus = 'idle' | 'loading' | 'ok' | 'error';
-
 export default function ProjectsPage() {
   const [mounted, setMounted] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
-  const [syncMessage, setSyncMessage] = useState('');
   useEffect(() => setMounted(true), []);
 
-  const { projects: notionProjects, fromNotion, mutate } = useNotionProjects();
+  const { projects: notionProjects, fromNotion } = useNotionProjects();
   const projects: ProjectItem[] = fromNotion
     ? mergeNotionWithStatic(notionProjects)
     : PROJECTS;
-
-  const syncToNotion = useCallback(async () => {
-    setSyncStatus('loading');
-    setSyncMessage('');
-    try {
-      const res = await fetch('/api/notion/sync-projects', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) {
-        setSyncStatus('error');
-        setSyncMessage(data.error ?? 'Sync mislukt');
-        return;
-      }
-      setSyncStatus('ok');
-      setSyncMessage(data.message ?? 'Gesynced');
-      void mutate();
-    } catch (e) {
-      setSyncStatus('error');
-      setSyncMessage(e instanceof Error ? e.message : 'Sync mislukt');
-    }
-  }, [mutate]);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -92,23 +67,6 @@ export default function ProjectsPage() {
           Live data from Notion • Projecten uit je Second Brain database
         </p>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={syncToNotion}
-          disabled={syncStatus === 'loading'}
-        >
-          {syncStatus === 'loading' ? 'Bezig…' : 'Sync projecten naar Notion'}
-        </Button>
-        {syncStatus === 'ok' && (
-          <span className="text-xs text-emerald-400">{syncMessage}</span>
-        )}
-        {syncStatus === 'error' && (
-          <span className="text-xs text-red-400">{syncMessage}</span>
-        )}
-      </div>
       {projects.map((proj) => (
         <ProjectCard key={proj.name} project={proj} mounted={mounted} />
       ))}

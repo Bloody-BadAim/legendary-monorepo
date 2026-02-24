@@ -18,3 +18,7 @@ export function hasNotionConfig(): boolean {
     process.env.NOTION_PROJECTS_DB
   );
 }
+
+export function hasNotionAreasConfig(): boolean {
+  return Boolean(process.env.NOTION_API_KEY && process.env.NOTION_AREAS_DB);
+}

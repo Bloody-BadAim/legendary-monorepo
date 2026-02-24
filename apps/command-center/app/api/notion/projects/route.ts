@@ -28,6 +28,14 @@ function parseFormulaNumber(prop: unknown): number {
   return 0;
 }
 
+function parseRelationIds(prop: unknown): string[] {
+  if (!prop || typeof prop !== 'object') return [];
+  const p = prop as { relation?: Array<{ id?: string }> };
+  const rel = p.relation;
+  if (!Array.isArray(rel)) return [];
+  return rel.map((r) => r.id).filter(Boolean) as string[];
+}
+
 export async function GET() {
   if (!hasNotionConfig()) {
     return NextResponse.json({ projects: [], source: 'none' });
@@ -54,6 +62,7 @@ export async function GET() {
           name: '',
           status: '',
           progress: 0,
+          areaIds: [],
         };
       }
       const props = (page as { properties: Record<string, unknown> })
@@ -61,11 +70,13 @@ export async function GET() {
       const name = parseTitle(props['Name']);
       const status = parseStatus(props['Status']);
       const progress = parseFormulaNumber(props['Progress ']);
+      const areaIds = parseRelationIds(props['Areas']);
       return {
         id: page.id,
         name,
         status,
         progress,
+        areaIds,
       };
     });
 

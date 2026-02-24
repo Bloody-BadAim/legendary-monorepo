@@ -41,6 +41,7 @@ export const NAV_TABS = [
   { label: 'Tools', href: '/tools' },
   { label: 'Projects', href: '/projects' },
   { label: 'Roadmap', href: '/roadmap' },
+  { label: 'Todo', href: '/todo' },
   { label: 'Pomodoro', href: '/pomodoro' },
   { label: 'MCPs', href: '/mcps' },
   { label: 'Prompts', href: '/prompts' },

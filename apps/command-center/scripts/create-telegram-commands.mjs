@@ -44,7 +44,8 @@ const headers = { 'Content-Type': 'application/json', 'X-N8N-API-KEY': API_KEY }
 async function deleteExisting() {
   const res = await fetch(apiBase + '/workflows', { headers });
   if (!res.ok) return;
-  const data = await res.json();
+  const raw = await res.text();
+  const data = JSON.parse(raw);
   const list = data.data || [];
   const existing = list.find(w => w.name === 'telegram-commands');
   if (existing) {
@@ -58,35 +59,70 @@ async function create() {
   const ids = Array.from({ length: 8 }, () => randomUUID());
   const cred = { telegramApi: { id: CRED_ID, name: 'Telegram Bot' } };
 
-  const jsCode = `const item = $input.first().json;
-const chatId = $('Telegram Trigger').first().json.message.chat.id;
-let text = '';
-if (item.briefing) text = 'Briefing:\n\n' + item.briefing;
-else if (item.tasks && Array.isArray(item.tasks)) text = 'Subtaken:\n\n' + item.tasks.map(t => '- ' + (t.task || t)).join('\n');
-else if (item.review) text = 'Week Review:\n\n' + item.review;
-else text = JSON.stringify(item).slice(0, 800);
-return [{ json: { chatId, text } }];`;
+  const jsCode = "const item = $input.first().json;\n" +
+    "const chatId = $('Telegram Trigger').first().json.message.chat.id;\n" +
+    "let text = '';\n" +
+    "if (item.briefing) text = 'Briefing:\n\n' + item.briefing;\n" +
+    "else if (item.tasks && Array.isArray(item.tasks)) text = 'Subtaken:\n\n' + item.tasks.map(t => '- ' + (t.task || t)).join('\n');\n" +
+    "else if (item.review) text = 'Week Review:\n\n' + item.review;\n" +
+    "else text = JSON.stringify(item).slice(0, 800);\n" +
+    "return [{ json: { chatId, text } }];";
 
   const workflow = {
     name: 'telegram-commands',
     nodes: [
       {
         id: ids[0], name: 'Telegram Trigger', type: 'n8n-nodes-base.telegramTrigger',
-        typeVersion: 1.1, position: [240, 300],
+        typeVersion: 1, position: [240, 300],
         parameters: { updates: ['message'] },
         credentials: cred
       },
       {
         id: ids[1], name: 'Switch Command', type: 'n8n-nodes-base.switch',
-        typeVersion: 3.2, position: [460, 300],
+        typeVersion: 2, position: [460, 300],
         parameters: {
-          rules: { rules: [
-            { outputKey: 'briefing', conditions: { conditions: [{ leftValue: '={{ $json.message.text }}', rightValue: '/briefing', operator: { type: 'string', operation: 'startsWith' } }] } },
-            { outputKey: 'breakdown', conditions: { conditions: [{ leftValue: '={{ $json.message.text }}', rightValue: '/breakdown', operator: { type: 'string', operation: 'startsWith' } }] } },
-            { outputKey: 'review', conditions: { conditions: [{ leftValue: '={{ $json.message.text }}', rightValue: '/review', operator: { type: 'string', operation: 'startsWith' } }] } },
-            { outputKey: 'taken', conditions: { conditions: [{ leftValue: '={{ $json.message.text }}', rightValue: '/taken', operator: { type: 'string', operation: 'startsWith' } }] } },
-          ]},
-          options: { fallbackOutput: 'extra' },
+          mode: 'rules',
+          rules: {
+            rules: [
+              {
+                conditions: {
+                  conditions: [
+                    { leftValue: '={{ $json.message.text }}', rightValue: '/briefing', operator: { type: 'string', operation: 'startsWith' } }
+                  ]
+                },
+                renameOutput: true,
+                outputKey: 'briefing'
+              },
+              {
+                conditions: {
+                  conditions: [
+                    { leftValue: '={{ $json.message.text }}', rightValue: '/breakdown', operator: { type: 'string', operation: 'startsWith' } }
+                  ]
+                },
+                renameOutput: true,
+                outputKey: 'breakdown'
+              },
+              {
+                conditions: {
+                  conditions: [
+                    { leftValue: '={{ $json.message.text }}', rightValue: '/review', operator: { type: 'string', operation: 'startsWith' } }
+                  ]
+                },
+                renameOutput: true,
+                outputKey: 'review'
+              },
+              {
+                conditions: {
+                  conditions: [
+                    { leftValue: '={{ $json.message.text }}', rightValue: '/taken', operator: { type: 'string', operation: 'startsWith' } }
+                  ]
+                },
+                renameOutput: true,
+                outputKey: 'taken'
+              }
+            ]
+          },
+          options: { fallbackOutput: 'extra' }
         }
       },
       {
@@ -150,7 +186,11 @@ return [{ json: { chatId, text } }];`;
   console.log('Created telegram-commands:', id);
 
   const act = await fetch(apiBase + '/workflows/' + id + '/activate', { method: 'POST', headers });
-  console.log('Activated:', act.ok ? 'YES' : 'FAILED');
+  if (act.ok) {
+    console.log('Activated: YES');
+  } else {
+    console.log('Activate failed (', act.status, ') - activate manually in n8n UI');
+  }
 }
 
 async function main() {

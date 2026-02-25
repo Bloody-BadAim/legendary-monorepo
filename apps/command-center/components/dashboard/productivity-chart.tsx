@@ -81,7 +81,7 @@ export function ProductivityChart({ tasks }: ProductivityChartProps) {
                 borderRadius: '8px',
               }}
               labelStyle={{ color: '#e2e8f0' }}
-              formatter={(value: number) => [value, 'taken']}
+              formatter={(value: number | undefined) => [value ?? 0, 'taken']}
             />
             <Legend
               layout="vertical"

@@ -79,43 +79,52 @@ async function create() {
       },
       {
         id: ids[1], name: 'Switch Command', type: 'n8n-nodes-base.switch',
-        typeVersion: 2, position: [460, 300],
+        typeVersion: 3.2, position: [460, 300],
         parameters: {
           mode: 'rules',
+          // Switch V3 API expects rules.values (not rules.rules); otherwise all branches stay empty
           rules: {
-            rules: [
+            values: [
               {
                 conditions: {
+                  options: { caseSensitive: true, leftValue: '' },
                   conditions: [
                     { leftValue: '={{ $json.message.text }}', rightValue: '/briefing', operator: { type: 'string', operation: 'startsWith' } }
-                  ]
+                  ],
+                  combinator: 'and'
                 },
                 renameOutput: true,
                 outputKey: 'briefing'
               },
               {
                 conditions: {
+                  options: { caseSensitive: true, leftValue: '' },
                   conditions: [
                     { leftValue: '={{ $json.message.text }}', rightValue: '/breakdown', operator: { type: 'string', operation: 'startsWith' } }
-                  ]
+                  ],
+                  combinator: 'and'
                 },
                 renameOutput: true,
                 outputKey: 'breakdown'
               },
               {
                 conditions: {
+                  options: { caseSensitive: true, leftValue: '' },
                   conditions: [
                     { leftValue: '={{ $json.message.text }}', rightValue: '/review', operator: { type: 'string', operation: 'startsWith' } }
-                  ]
+                  ],
+                  combinator: 'and'
                 },
                 renameOutput: true,
                 outputKey: 'review'
               },
               {
                 conditions: {
+                  options: { caseSensitive: true, leftValue: '' },
                   conditions: [
                     { leftValue: '={{ $json.message.text }}', rightValue: '/taken', operator: { type: 'string', operation: 'startsWith' } }
-                  ]
+                  ],
+                  combinator: 'and'
                 },
                 renameOutput: true,
                 outputKey: 'taken'

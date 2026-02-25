@@ -74,7 +74,7 @@ export default function TodoPage() {
       ),
     [areasData?.areas]
   );
-  const allTasks = tasksData?.tasks ?? [];
+  const allTasks = useMemo(() => tasksData?.tasks ?? [], [tasksData?.tasks]);
   const tasksError =
     tasksData?.error ?? (tasksData?.source === 'error' ? 'Notion fout' : null);
   const isLoading = !tasksData && !tasksError;

@@ -27,7 +27,7 @@ const SHORTCUTS: { keys: string; label: string }[] = [
 export function ShortcutsOverlay() {
   const ctx = React.useContext(ShortcutsOverlayContext);
   const isOpen = ctx?.isOpen ?? false;
-  const close = ctx?.close ?? (() => {});
+  const close = React.useMemo(() => ctx?.close ?? (() => {}), [ctx?.close]);
 
   React.useEffect(() => {
     if (!isOpen) return;

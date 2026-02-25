@@ -59,7 +59,7 @@ export function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const isOpen = ctx?.isOpen ?? false;
-  const close = ctx?.close ?? (() => {});
+  const close = React.useMemo(() => ctx?.close ?? (() => {}), [ctx?.close]);
 
   const navItems: PaletteItem[] = useMemo(
     () =>

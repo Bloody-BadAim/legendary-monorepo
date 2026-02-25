@@ -32,14 +32,6 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
       },
       {
         id: 0,
-        name: 'LiteLLM Gateway',
-        status: 'active',
-        description: 'OpenAI-compatible API hub op :4000',
-        link: 'http://localhost:4000',
-        category: 'ai',
-      },
-      {
-        id: 0,
         name: 'ChatGPT Pro',
         status: 'active',
         description: 'Complex reasoning & research',

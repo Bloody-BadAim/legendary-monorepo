@@ -9,6 +9,8 @@ import { TaskList } from '@/components/dashboard/task-list';
 import { ProjectCardMini } from '@/components/dashboard/project-card-mini';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { ProductivityChart } from '@/components/dashboard/productivity-chart';
+import { AiAssistant } from '@/components/dashboard/ai-assistant';
+import { AiStatusPanel } from '@/components/dashboard/ai-status-panel';
 import { useNotionTasks } from '@/hooks/use-notion-tasks';
 import { useNotionProjects } from '@/hooks/use-notion-projects';
 import { TOOL_CATEGORIES } from '@/data/tools';
@@ -140,6 +142,10 @@ export default function CommandCenterPage() {
       </div>
 
       <RevenueTracker />
+
+      <AiStatusPanel />
+
+      <AiAssistant />
 
       <div className="rounded-xl border border-border bg-card p-5">
         <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-200">

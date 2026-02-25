@@ -8,14 +8,7 @@ export const PROJECTS: ProjectItem[] = [
     progress: 85,
     description:
       'MKB klanten intake: formulier > AI categorisatie > PostgreSQL > n8n notificaties',
-    tech: [
-      'Next.js 14',
-      'TypeScript',
-      'Prisma',
-      'LiteLLM',
-      'n8n',
-      'PostgreSQL',
-    ],
+    tech: ['Next.js 14', 'TypeScript', 'Prisma', 'Ollama', 'n8n', 'PostgreSQL'],
     revenue: '€750 - €1500 per klant',
     priority: 'critical',
     location: 'legendary-monorepo/apps/ai-intake-agent',
@@ -102,9 +95,8 @@ export const PROJECTS: ProjectItem[] = [
     slug: 'ai-automation-studio',
     status: 'live',
     progress: 100,
-    description:
-      'Lokale AI stack (Docker compose: Ollama + LiteLLM + PostgreSQL + n8n)',
-    tech: ['Docker Compose', 'Ollama', 'LiteLLM', 'PostgreSQL', 'n8n'],
+    description: 'Lokale AI stack (Docker compose: Ollama + PostgreSQL + n8n)',
+    tech: ['Docker Compose', 'Ollama', 'PostgreSQL', 'n8n'],
     revenue: 'Development infrastructure',
     priority: 'low',
     location: '~/projects/AI-Automation-Studio',

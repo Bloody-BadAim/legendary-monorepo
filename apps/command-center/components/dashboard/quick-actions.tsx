@@ -7,7 +7,6 @@ import {
   BookOpen,
   Github,
   Globe,
-  Brain,
   Cpu,
   Triangle,
 } from 'lucide-react';
@@ -43,12 +42,6 @@ const QUICK_ACTIONS = [
     href: 'https://matmat.me',
     icon: Globe,
     color: '#06b6d4',
-  },
-  {
-    label: 'LiteLLM',
-    href: 'http://localhost:4000/ui',
-    icon: Brain,
-    color: '#8b5cf6',
   },
   {
     label: 'Ollama',

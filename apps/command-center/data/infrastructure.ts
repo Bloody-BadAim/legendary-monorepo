@@ -68,14 +68,12 @@ export const INFRA_NODES: InfraNode[] = [
     specs: 'Intel i5-10400, 32GB RAM, Docker Desktop 29.2.0',
     services: [
       'Ollama (mistral:7b, codellama:7b, llama3.2:1b)',
-      'LiteLLM Gateway (:4000)',
       'PostgreSQL 16 (:5432)',
       'n8n (:5678)',
       'Cursor IDE (7 MCPs)',
       'Next.js dev servers',
     ],
     ports: [
-      '4000 (LiteLLM)',
       '5432 (PostgreSQL)',
       '5678 (n8n)',
       '11434 (Ollama)',

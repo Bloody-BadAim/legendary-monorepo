@@ -9,7 +9,7 @@ export const ROADMAP: RoadmapWeek[] = [
     tasks: [
       { task: 'DigitalOcean proxy server (Caddy + Docker)', done: true },
       { task: 'Cloudflare DNS + proxy voor matmat.me', done: true },
-      { task: 'Local AI stack: Ollama + LiteLLM + PostgreSQL', done: true },
+      { task: 'Local AI stack: Ollama + PostgreSQL', done: true },
       { task: 'n8n lokaal draaien in Docker', done: true },
       { task: 'Professional email (matin@matin.email)', done: true },
       { task: 'Sentry error monitoring', done: true },

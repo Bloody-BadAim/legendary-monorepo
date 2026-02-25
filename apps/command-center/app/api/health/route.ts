@@ -31,13 +31,13 @@ const HEALTH_CHECKS: {
   },
   {
     id: 'litellm',
-    url: 'http://localhost:4000',
+    url: process.env.LITELLM_BASE_URL || 'http://localhost:4000',
     label: 'LiteLLM',
     type: 'http',
   },
   {
     id: 'ollama',
-    url: 'http://localhost:11434',
+    url: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
     label: 'Ollama',
     type: 'http',
   },

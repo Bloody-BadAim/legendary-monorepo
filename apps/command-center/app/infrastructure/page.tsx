@@ -15,7 +15,7 @@ function getNodeHealthStatus(
     cloudflare: [],
     matmat: ['matmat-web'],
     powerhouse: [],
-    local: ['ollama', 'litellm', 'postgres', 'n8n-local', 'command-center'],
+    local: ['ollama', 'postgres', 'n8n-local', 'command-center'],
   };
   const ids = idsByNode[nodeId];
   if (!ids?.length) return null;

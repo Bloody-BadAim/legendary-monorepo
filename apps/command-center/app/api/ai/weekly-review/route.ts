@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
+import { aiChat, isAIConfigured, AINotConfiguredError } from '@/lib/ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
 
-const OLLAMA_TIMEOUT_MS = 40_000;
+const AI_TIMEOUT_MS = 40_000;
 
 export async function POST(req: Request) {
-  const baseUrl = process.env.OLLAMA_BASE_URL;
-  if (!baseUrl) {
+  if (!isAIConfigured()) {
     return NextResponse.json(
-      { error: 'Ollama niet geconfigureerd', review: '' },
+      {
+        error: 'AI niet geconfigureerd (stel OPENAI_API_KEY of OLLAMA_BASE_URL in)',
+        review: '',
+      },
       { status: 503 }
     );
   }
@@ -32,47 +35,31 @@ export async function POST(req: Request) {
   const doneTasks = typeof body.doneTasks === 'string' ? body.doneTasks : '';
   const openCount = typeof body.openCount === 'number' ? body.openCount : 0;
   const doneCount = typeof body.doneCount === 'number' ? body.doneCount : 0;
-  const model = typeof body.model === 'string' ? body.model : 'qwen3:4b';
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const model = typeof body.model === 'string' ? body.model : undefined;
 
   const userContent = `Afgeronde taken:\n${doneTasks || 'Geen'}\n\nNog open: ${openCount} taken. Afgerond deze week: ${doneCount} taken.`;
 
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Schrijf een positieve week review in het Nederlands. Structuur: 1) Wat is er bereikt, 2) Trots moment, 3) Focus voor volgende week. Max 200 woorden.',
-          },
-          { role: 'user', content: userContent },
-        ],
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    const { content } = await aiChat(
+      [
+        {
+          role: 'system',
+          content:
+            'Schrijf een positieve week review in het Nederlands. Structuur: 1) Wat is er bereikt, 2) Trots moment, 3) Focus voor volgende week. Max 200 woorden.',
+        },
+        { role: 'user', content: userContent },
+      ],
+      { model, timeoutMs: AI_TIMEOUT_MS }
+    );
 
-    if (!res.ok) {
-      const text = await res.text();
+    return NextResponse.json({ review: content });
+  } catch (err) {
+    if (err instanceof AINotConfiguredError) {
       return NextResponse.json(
-        { error: text || 'Ollama fout', review: '' },
+        { error: err.message, review: '' },
         { status: 503 }
       );
     }
-
-    const data = (await res.json()) as { message?: { content?: string } };
-    const review = data.message?.content?.trim() ?? '';
-
-    return NextResponse.json({ review });
-  } catch (err) {
-    clearTimeout(timeout);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: msg, review: '' }, { status: 503 });
   }

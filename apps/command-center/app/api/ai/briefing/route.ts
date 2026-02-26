@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getNotion, hasNotionConfig } from '@/lib/notion';
+import { aiChat, isAIConfigured, AINotConfiguredError } from '@/lib/ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const OLLAMA_TIMEOUT_MS = 45_000;
+const AI_TIMEOUT_MS = 45_000;
 
 function parseTitle(prop: unknown): string {
   if (!prop || typeof prop !== 'object') return '';
@@ -36,10 +37,12 @@ export async function POST() {
 }
 
 async function runBriefing() {
-  const baseUrl = process.env.OLLAMA_BASE_URL;
-  if (!baseUrl) {
+  if (!isAIConfigured()) {
     return NextResponse.json(
-      { error: 'Ollama niet geconfigureerd', briefing: 'AI niet beschikbaar.' },
+      {
+        error: 'AI niet geconfigureerd (stel OPENAI_API_KEY of OLLAMA_BASE_URL in)',
+        briefing: 'AI niet beschikbaar.',
+      },
       { status: 503 }
     );
   }
@@ -82,48 +85,33 @@ async function runBriefing() {
     }
   }
 
-  const model = process.env.OLLAMA_BRIEFING_MODEL ?? 'qwen3:4b';
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const model = process.env.OLLAMA_BRIEFING_MODEL ?? undefined;
 
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Je bent een productiviteitscoach. Maak een motiverende dagelijkse briefing op basis van de taken. Geef: 1) Top 3 prioriteiten voor vandaag, 2) Een korte motiverende zin. Max 150 woorden. Schrijf in het Nederlands.',
-          },
-          {
-            role: 'user',
-            content: `Mijn open taken:\n${taskList}`,
-          },
-        ],
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    const { content } = await aiChat(
+      [
+        {
+          role: 'system',
+          content:
+            'Je bent een productiviteitscoach. Maak een motiverende dagelijkse briefing op basis van de taken. Geef: 1) Top 3 prioriteiten voor vandaag, 2) Een korte motiverende zin. Max 150 woorden. Schrijf in het Nederlands.',
+        },
+        {
+          role: 'user',
+          content: `Mijn open taken:\n${taskList}`,
+        },
+      ],
+      { model, timeoutMs: AI_TIMEOUT_MS }
+    );
 
-    if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json({
-        briefing: 'Briefing kon niet worden gegenereerd (Ollama fout).',
-        error: errText?.slice(0, 200),
-      });
-    }
-
-    const data = (await res.json()) as { message?: { content?: string } };
-    const briefing =
-      data.message?.content?.trim() ?? 'Geen briefing beschikbaar.';
-
+    const briefing = content || 'Geen briefing beschikbaar.';
     return NextResponse.json({ briefing });
   } catch (e) {
-    clearTimeout(timeout);
+    if (e instanceof AINotConfiguredError) {
+      return NextResponse.json(
+        { error: e.message, briefing: 'AI niet beschikbaar.' },
+        { status: 503 }
+      );
+    }
     const msg = e instanceof Error ? e.message : 'Unknown error';
     return NextResponse.json({
       briefing: msg.includes('abort')

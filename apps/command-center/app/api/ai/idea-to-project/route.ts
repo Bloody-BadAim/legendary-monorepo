@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
+import { aiChat, isAIConfigured, AINotConfiguredError } from '@/lib/ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
 
-const OLLAMA_TIMEOUT_MS = 40_000;
+const AI_TIMEOUT_MS = 40_000;
 
 export async function POST(req: Request) {
-  const baseUrl = process.env.OLLAMA_BASE_URL;
-  if (!baseUrl) {
+  if (!isAIConfigured()) {
     return NextResponse.json(
       {
-        error: 'Ollama niet geconfigureerd',
+        error: 'AI niet geconfigureerd (stel OPENAI_API_KEY of OLLAMA_BASE_URL in)',
         projectName: '',
         description: '',
         tasks: [],
@@ -35,47 +35,23 @@ export async function POST(req: Request) {
   }
 
   const idea = typeof body.idea === 'string' ? body.idea.trim() : '';
-  const model = typeof body.model === 'string' ? body.model : 'qwen3:4b';
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const model = typeof body.model === 'string' ? body.model : undefined;
 
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: `Converteer een idee naar een project structuur. Geef ALLEEN geldige JSON terug, geen andere tekst:
+    const { content: raw } = await aiChat(
+      [
+        {
+          role: 'system',
+          content: `Converteer een idee naar een project structuur. Geef ALLEEN geldige JSON terug, geen andere tekst:
 {"projectName": "...", "description": "...", "tasks": [{"task": "...", "priority": "High|Medium|Low"}]}
 Max 5 taken. Gebruik alleen de genoemde velden.`,
-          },
-          { role: 'user', content: idea || 'Geen idee opgegeven.' },
-        ],
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const text = await res.text();
-      return NextResponse.json(
-        {
-          error: text || 'Ollama fout',
-          projectName: '',
-          description: '',
-          tasks: [],
         },
-        { status: 503 }
-      );
-    }
+        { role: 'user', content: idea || 'Geen idee opgegeven.' },
+      ],
+      { model, timeoutMs: AI_TIMEOUT_MS }
+    );
 
-    const data = (await res.json()) as { message?: { content?: string } };
-    const content = data.message?.content?.trim() ?? '{}';
+    const content = raw ?? '{}';
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
 
@@ -97,7 +73,12 @@ Max 5 taken. Gebruik alleen de genoemde velden.`,
 
     return NextResponse.json({ projectName, description, tasks });
   } catch (err) {
-    clearTimeout(timeout);
+    if (err instanceof AINotConfiguredError) {
+      return NextResponse.json(
+        { error: err.message, projectName: '', description: '', tasks: [] },
+        { status: 503 }
+      );
+    }
     const msg = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json(
       { error: msg, projectName: '', description: '', tasks: [] },

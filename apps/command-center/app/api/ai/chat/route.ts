@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
+import { aiChatStream, isAIConfigured, AINotConfiguredError } from '@/lib/ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const OLLAMA_TIMEOUT_MS = 55_000;
+const AI_TIMEOUT_MS = 55_000;
 
 export async function POST(req: Request) {
-  const baseUrl = process.env.OLLAMA_BASE_URL;
-  if (!baseUrl) {
+  if (!isAIConfigured()) {
     return NextResponse.json(
       {
         error: 'AI offline',
-        details: 'Ollama niet geconfigureerd (OLLAMA_BASE_URL)',
+        details: 'AI niet geconfigureerd (stel OPENAI_API_KEY of OLLAMA_BASE_URL in)',
       },
       { status: 503 }
     );
@@ -32,36 +32,20 @@ export async function POST(req: Request) {
     );
   }
 
-  const model = typeof body.model === 'string' ? body.model : 'qwen3:4b';
+  const model = typeof body.model === 'string' ? body.model : undefined;
   const context = typeof body.context === 'string' ? body.context : undefined;
 
   const messages: Array<{ role: string; content: string }> = [];
   if (context) messages.push({ role: 'system', content: context });
   messages.push({ role: 'user', content: message });
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
-
   try {
-    const ollamaRes = await fetch(`${baseUrl.replace(/\/$/, '')}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, stream: true }),
-      signal: controller.signal,
+    const { stream } = await aiChatStream(messages, {
+      model,
+      timeoutMs: AI_TIMEOUT_MS,
     });
 
-    clearTimeout(timeout);
-
-    if (!ollamaRes.ok || !ollamaRes.body) {
-      const text = await ollamaRes.text();
-      const details = text || `Ollama returned ${ollamaRes.status}`;
-      return NextResponse.json(
-        { error: 'AI offline', details },
-        { status: 503 }
-      );
-    }
-
-    return new Response(ollamaRes.body, {
+    return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -69,13 +53,18 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    clearTimeout(timeout);
+    if (err instanceof AINotConfiguredError) {
+      return NextResponse.json(
+        { error: 'AI offline', details: err.message },
+        { status: 503 }
+      );
+    }
     const details = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json(
       {
         error: 'AI offline',
         details: details.includes('abort')
-          ? 'Timeout. Ollama reageert niet.'
+          ? 'Timeout. AI reageert niet.'
           : details,
       },
       { status: 503 }

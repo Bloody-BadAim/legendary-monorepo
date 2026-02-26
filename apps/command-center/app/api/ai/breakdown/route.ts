@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { aiChat, isAIConfigured, AINotConfiguredError } from '@/lib/ai';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
-const OLLAMA_TIMEOUT_MS = 28_000;
+const AI_TIMEOUT_MS = 28_000;
 
 export interface BreakdownTask {
   task: string;
@@ -20,12 +21,11 @@ const FALLBACK_TASKS: BreakdownTask[] = [
 ];
 
 export async function POST(req: Request) {
-  const baseUrl = process.env.OLLAMA_BASE_URL;
-  if (!baseUrl) {
+  if (!isAIConfigured()) {
     return NextResponse.json(
       {
         error: 'AI offline',
-        details: 'Ollama niet geconfigureerd (OLLAMA_BASE_URL)',
+        details: 'AI niet geconfigureerd (stel OPENAI_API_KEY of OLLAMA_BASE_URL in)',
         tasks: FALLBACK_TASKS,
       },
       { status: 503 }
@@ -50,47 +50,22 @@ export async function POST(req: Request) {
     );
   }
 
-  const model = typeof body.model === 'string' ? body.model : 'qwen3:4b';
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  const model = typeof body.model === 'string' ? body.model : undefined;
 
   try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: `Je bent een productiviteitsassistent. Splits doelen op in concrete, actiegerichte subtaken. Geef altijd een JSON array terug met taken.
+    const { content } = await aiChat(
+      [
+        {
+          role: 'system',
+          content: `Je bent een productiviteitsassistent. Splits doelen op in concrete, actiegerichte subtaken. Geef altijd een JSON array terug met taken.
 Format: [{"task": "...", "priority": "High|Medium|Low", "estimatedMinutes": 30}]
 Max 5 subtaken. Antwoord ALLEEN met de JSON array, geen uitleg.`,
-          },
-          { role: 'user', content: goal },
-        ],
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      const text = await response.text();
-      return NextResponse.json(
-        {
-          error: 'AI offline',
-          details: text || `Ollama returned ${response.status}`,
-          tasks: FALLBACK_TASKS,
         },
-        { status: 503 }
-      );
-    }
+        { role: 'user', content: goal },
+      ],
+      { model, timeoutMs: AI_TIMEOUT_MS }
+    );
 
-    const data = (await response.json()) as { message?: { content?: string } };
-    const content = data.message?.content?.trim();
     if (!content) {
       return NextResponse.json({ tasks: FALLBACK_TASKS });
     }
@@ -117,7 +92,12 @@ Max 5 subtaken. Antwoord ALLEEN met de JSON array, geen uitleg.`,
 
     return NextResponse.json({ tasks });
   } catch (err) {
-    clearTimeout(timeout);
+    if (err instanceof AINotConfiguredError) {
+      return NextResponse.json(
+        { error: err.message, tasks: FALLBACK_TASKS },
+        { status: 503 }
+      );
+    }
     const details = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json(
       {
